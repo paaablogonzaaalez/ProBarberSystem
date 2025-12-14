@@ -1,0 +1,58 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f7f7f7;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background: #222;
+  color: #fff;
+  padding: 1rem;
+  text-align: center;
+}
+
+main {
+  max-width: 500px;
+  margin: 2rem auto;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+  margin: 0 0 1rem 0;
+}
+
+label {
+  display: block;
+  margin-top: 1rem;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background-color: #222; /* antes: background */
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s; /* animamos background-color */
+}
+
+button:hover {
+  background-color: #555; /* antes: background */
+}
+
+#resumen-cita {
+  margin-top: 2rem;
+  background: #eee;
+  padding: 1rem;
+  border-radius: 5px;
+}
