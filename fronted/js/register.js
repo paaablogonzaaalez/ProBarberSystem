@@ -17,7 +17,7 @@ registerForm.addEventListener("submit", async (e) => {
         apellidos,
         telefono,
         email,
-        password
+        password  
       };
 
       try {

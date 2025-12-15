@@ -114,7 +114,7 @@ class UsuarioController
     }
 
     // ======================
-    // Login
+    // Login (MEJORADO)
     // ======================
     public function login()
     {
@@ -133,11 +133,40 @@ class UsuarioController
             return;
         }
 
-        // Obtener cliente_id
+        // 👇 BUSCAR O CREAR cliente_id automáticamente
         $stmt = $this->db->prepare("SELECT id FROM clientes WHERE email = :email LIMIT 1");
         $stmt->execute([':email' => $usuario['email']]);
         $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
-        $cliente_id = $cliente['id'] ?? null;
+        
+        $cliente_id = null;
+
+        if ($cliente) {
+            // ✅ Cliente ya existe
+            $cliente_id = $cliente['id'];
+        } else {
+            // 🔧 Cliente NO existe, lo creamos automáticamente
+            $stmtInsert = $this->db->prepare(
+                "INSERT INTO clientes (nombre, telefono, email, notas) 
+                 VALUES (:nombre, :telefono, :email, :notas)"
+            );
+            
+            $nombreCompleto = trim($usuario['nombre'] . ' ' . ($usuario['apellidos'] ?? ''));
+            
+            $stmtInsert->execute([
+                ':nombre' => $nombreCompleto,
+                ':telefono' => $usuario['telefono'] ?? '',
+                ':email' => $usuario['email'],
+                ':notas' => 'Cliente creado automáticamente al hacer login'
+            ]);
+
+            $cliente_id = $this->db->lastInsertId();
+            
+            if (!$cliente_id) {
+                http_response_code(500);
+                echo json_encode(["error" => "No se pudo crear el cliente automáticamente"]);
+                return;
+            }
+        }
 
         if (!$cliente_id) {
             http_response_code(500);
@@ -145,21 +174,20 @@ class UsuarioController
             return;
         }
 
-        // JWT
+        // JWT con cliente_id garantizado
         $payload = [
             "iss" => "ProBarberSystem",
             "aud" => "ProBarberClients",
             "iat" => time(),
             "exp" => time() + (24 * 60 * 60),
             "data" => [
-                "id" => $usuario["id"],        // id de usuarios
-                "cliente_id" => $cliente_id,   // id correcto de clientes
+                "id" => $usuario["id"],
+                "cliente_id" => $cliente_id,
                 "nombre" => $usuario["nombre"],
                 "apellidos" => $usuario["apellidos"] ?? '',
                 "email" => $usuario["email"]
-        ]
-    ];
-
+            ]
+        ];
 
         $jwt = JWT::encode($payload, JWT_SECRET_KEY, 'HS256');
 
@@ -172,8 +200,8 @@ class UsuarioController
                 "nombre" => $usuario["nombre"],
                 "apellidos" => $usuario["apellidos"] ?? '',
                 "email" => $usuario["email"]
-        ]
-    ]);
-
+            ]
+        ]);
     }
 }
+?>
