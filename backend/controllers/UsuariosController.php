@@ -29,20 +29,19 @@ class UsuarioController
             return;
         }
 
-        // Validar email
         if (!filter_var($data["email"], FILTER_VALIDATE_EMAIL)) {
             http_response_code(400);
             echo json_encode(["error" => "Email inválido"]);
             return;
         }
 
-        // Comprobar duplicado
         if ($this->usuarioModel->verificarEmail($data["email"])) {
             http_response_code(409);
             echo json_encode(["error" => "Este email ya está registrado"]);
             return;
         }
 
+        // Insertar usuario
         $usuarioData = [
             'nombre'    => htmlspecialchars($data['nombre']),
             'apellidos' => htmlspecialchars($data['apellidos'] ?? ''),
@@ -50,15 +49,68 @@ class UsuarioController
             'email'     => strtolower($data['email']),
             'password'  => $data['password'],
             'rol'       => 'usuario'
-];
+        ];
 
-
-        if ($this->usuarioModel->crearUsuario($usuarioData)) {
-            echo json_encode(["mensaje" => "Usuario registrado correctamente"]);
-        } else {
+        if (!$this->usuarioModel->crearUsuario($usuarioData)) {
             http_response_code(500);
-            echo json_encode(["error" => "Error al registrar usuario"]);
+            echo json_encode(["error" => "Error al crear usuario"]);
+            return;
         }
+
+        $usuario_id = $this->db->lastInsertId();
+        if (!$usuario_id) {
+            http_response_code(500);
+            echo json_encode(["error" => "No se pudo obtener el usuario_id"]);
+            return;
+        }
+
+        // Insertar cliente
+        $stmt = $this->db->prepare("INSERT INTO clientes (nombre, telefono, email) VALUES (:nombre, :telefono, :email)");
+        if (!$stmt->execute([
+            ':nombre' => $usuarioData['nombre'],
+            ':telefono' => $usuarioData['telefono'],
+            ':email' => $usuarioData['email']
+        ])) {
+            http_response_code(500);
+            echo json_encode(["error" => "No se pudo crear el cliente"]);
+            return;
+        }
+
+        $cliente_id = $this->db->lastInsertId();
+        if (!$cliente_id) {
+            http_response_code(500);
+            echo json_encode(["error" => "No se pudo obtener el cliente_id"]);
+            return;
+        }
+
+        // Crear JWT con cliente_id
+        $payload = [
+            "iss" => "ProBarberSystem",
+            "aud" => "ProBarberClients",
+            "iat" => time(),
+            "exp" => time() + (24 * 60 * 60),
+            "data" => [
+                "id" => $usuario_id,
+                "cliente_id" => $cliente_id,
+                "nombre" => $usuarioData["nombre"],
+                "apellidos" => $usuarioData["apellidos"],
+                "email" => $usuarioData["email"]
+            ]
+        ];
+
+        $jwt = JWT::encode($payload, JWT_SECRET_KEY, 'HS256');
+
+        echo json_encode([
+            "mensaje" => "Usuario registrado correctamente",
+            "token" => $jwt,
+            "usuario" => [
+                "id" => $usuario_id,
+                "cliente_id" => $cliente_id,
+                "nombre" => $usuarioData["nombre"],
+                "apellidos" => $usuarioData["apellidos"],
+                "email" => $usuarioData["email"]
+            ]
+        ]);
     }
 
     // ======================
@@ -75,25 +127,39 @@ class UsuarioController
         }
 
         $usuario = $this->usuarioModel->login($data["email"], $data["password"]);
-
         if (!$usuario) {
             http_response_code(401);
             echo json_encode(["error" => "Credenciales incorrectas"]);
             return;
         }
 
+        // Obtener cliente_id
+        $stmt = $this->db->prepare("SELECT id FROM clientes WHERE email = :email LIMIT 1");
+        $stmt->execute([':email' => $usuario['email']]);
+        $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+        $cliente_id = $cliente['id'] ?? null;
+
+        if (!$cliente_id) {
+            http_response_code(500);
+            echo json_encode(["error" => "No se encontró cliente_id para este usuario"]);
+            return;
+        }
+
+        // JWT
         $payload = [
             "iss" => "ProBarberSystem",
             "aud" => "ProBarberClients",
             "iat" => time(),
             "exp" => time() + (24 * 60 * 60),
             "data" => [
-                "id" => $usuario["id"],
+                "id" => $usuario["id"],        // id de usuarios
+                "cliente_id" => $cliente_id,   // id correcto de clientes
                 "nombre" => $usuario["nombre"],
                 "apellidos" => $usuario["apellidos"] ?? '',
                 "email" => $usuario["email"]
-            ]
-        ];
+        ]
+    ];
+
 
         $jwt = JWT::encode($payload, JWT_SECRET_KEY, 'HS256');
 
@@ -102,10 +168,12 @@ class UsuarioController
             "token" => $jwt,
             "usuario" => [
                 "id" => $usuario["id"],
+                "cliente_id" => $cliente_id,
                 "nombre" => $usuario["nombre"],
                 "apellidos" => $usuario["apellidos"] ?? '',
                 "email" => $usuario["email"]
-            ]
-        ]);
+        ]
+    ]);
+
     }
 }

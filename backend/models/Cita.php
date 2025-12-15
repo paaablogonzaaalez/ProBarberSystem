@@ -7,15 +7,15 @@ class Cita {
     }
 
     public function crearCita($data): bool {
-    $sql = "INSERT INTO citas (fecha, hora, servicio, cliente_id) 
-            VALUES (:fecha, :hora, :servicio, :cliente_id)";
-    $stmt = $this->db->prepare($sql);
-    return $stmt->execute([
-        ':fecha' => $data['fecha'],
-        ':hora' => $data['hora'],
-        ':servicio' => $data['servicio'],
-        ':cliente_id' => $data['cliente_id']  // <-- importante
-    ]);
+        $sql = "INSERT INTO citas (fecha, hora, servicio_id, cliente_id) 
+                VALUES (:fecha, :hora, :servicio_id, :cliente_id)";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            ':fecha' => $data['fecha'],
+            ':hora' => $data['hora'],
+            ':servicio_id' => $data['servicio_id'],
+            ':cliente_id' => $data['cliente_id']
+        ]);
+    }
 }
-
 ?>

@@ -5,29 +5,22 @@ const backendURL = "http://localhost/ProBarberSystem/backend/index.php";
 let reserva = {
   fecha: "",
   hora: "",
-  servicio: "",
-  cliente_id: null  // <-- se añadirá automáticamente
+  servicio_id: null,
+  cliente_id: null
 };
-
-// =======================================
-// FUNCIONES PARA CADA PASO
-// =======================================
 
 // 0️⃣ Obtener cliente_id del usuario logueado (JWT)
 function obtenerClienteID() {
-  const token = localStorage.getItem("jwtToken"); // guarda aquí el token tras login
+  const token = localStorage.getItem("jwtToken");
   if (!token) return null;
-
-  // Decodificar payload del JWT
   const payload = JSON.parse(atob(token.split('.')[1]));
-  return payload.data.id; // asumiendo que el JWT tiene "data.id"
+  return payload.data.cliente_id;
 }
 
 // 1️⃣ Seleccionar fecha
 function guardarFecha() {
   const fechaInput = document.getElementById("fecha");
   const btnSiguiente = document.getElementById("btnSiguienteFecha");
-
   if (!fechaInput || !btnSiguiente) return;
 
   btnSiguiente.addEventListener("click", (e) => {
@@ -46,7 +39,6 @@ function guardarFecha() {
 function cargarHorasDisponibles() {
   const horaSelect = document.getElementById("hora");
   const btnSiguiente = document.getElementById("btnSiguienteHora");
-
   if (!horaSelect || !btnSiguiente) return;
 
   const horasDisponibles = [
@@ -77,13 +69,22 @@ function cargarHorasDisponibles() {
 function guardarServicio() {
   const servicioSelect = document.getElementById("servicio");
   const btnSiguiente = document.getElementById("btnSiguienteServicio");
-
   if (!servicioSelect || !btnSiguiente) return;
 
   btnSiguiente.addEventListener("click", (e) => {
     e.preventDefault();
     reserva = JSON.parse(localStorage.getItem("reserva")) || {};
-    reserva.servicio = servicioSelect.value;
+
+    // Guardar id correcto del servicio (numérico)
+    reserva.servicio_id = parseInt(servicioSelect.value);
+
+    // Guardar cliente_id desde JWT
+    reserva.cliente_id = obtenerClienteID();
+    if (!reserva.cliente_id) {
+      alert("❌ Debes iniciar sesión primero");
+      return;
+    }
+
     localStorage.setItem("reserva", JSON.stringify(reserva));
     window.location.href = "resumen_cita.html";
   });
@@ -93,24 +94,23 @@ function guardarServicio() {
 function mostrarResumen() {
   const output = document.getElementById("output");
   const btnConfirmar = document.getElementById("btnConfirmarCita");
-
   if (!output || !btnConfirmar) return;
 
   reserva = JSON.parse(localStorage.getItem("reserva")) || {};
-  reserva.cliente_id = obtenerClienteID(); // <- añadimos cliente_id
+  reserva.cliente_id = obtenerClienteID();
 
-  output.textContent = `📅 Fecha: ${reserva.fecha}\n⏰ Hora: ${reserva.hora}\n💈 Servicio: ${reserva.servicio}`;
+  output.textContent = `📅 Fecha: ${reserva.fecha}\n⏰ Hora: ${reserva.hora}\n💈 Servicio ID: ${reserva.servicio_id}`;
 
   btnConfirmar.addEventListener("click", async () => {
-    if (!reserva.cliente_id) {
-      alert("❌ Debes iniciar sesión para reservar");
+    if (!reserva.fecha || !reserva.hora || !reserva.servicio_id || !reserva.cliente_id) {
+      alert("❌ Datos incompletos. Selecciona fecha, hora y servicio.");
       return;
     }
 
     try {
       const res = await fetch(`${backendURL}?action=reservar`, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reserva)
       });
 
