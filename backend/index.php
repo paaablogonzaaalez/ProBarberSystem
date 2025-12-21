@@ -1,4 +1,15 @@
 <?php
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Accept, Authorization');
+header('Content-Type: application/json; charset=UTF-8');
+
+// Manejar peticiones OPTIONS (preflight)
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 ob_start();
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
@@ -12,17 +23,7 @@ require_once __DIR__ . '/middleware/AuthMiddleware.php';
 $db = (new Database())->getConnection();
 $usuarioController = new UsuarioController($db);
 
-// Cabeceras generales
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
-// Manejar preflight OPTIONS
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+//  ELIMINADAS LAS LÍNEAS DUPLICADAS DE HEADERS
 
 // Capturar acción
 $action = $_GET['action'] ?? '';
@@ -60,16 +61,16 @@ switch($action) {
     // ----------------------
     case 'reservar':
         try {
-            // 🔍 Obtener datos crudos
+            //  Obtener datos crudos
             $rawData = file_get_contents("php://input");
             
-            // 🔍 Log de datos recibidos
+            //  Log de datos recibidos
             error_log("====== RESERVAR CITA - DEBUG ======");
             error_log("Datos crudos recibidos: " . $rawData);
             
             $data = json_decode($rawData, true);
             
-            // 🔍 Log después de decodificar
+            //  Log después de decodificar
             error_log("Datos decodificados: " . print_r($data, true));
             error_log("Tipo de data: " . gettype($data));
             
@@ -85,7 +86,7 @@ switch($action) {
                 break;
             }
 
-            // 🔍 Verificar cada campo individualmente
+            //  Verificar cada campo individualmente
             $camposFaltantes = [];
             if (!isset($data['fecha'])) $camposFaltantes[] = 'fecha';
             if (!isset($data['hora'])) $camposFaltantes[] = 'hora';
@@ -135,25 +136,230 @@ switch($action) {
             
             if ($citaModel->crearCita($data)) {
                 ob_clean();
-                error_log("✅ Cita creada correctamente");
+                error_log(" Cita creada correctamente");
                 echo json_encode(["success" => true, "message" => "Cita registrada correctamente"]);
             } else {
                 http_response_code(500);
                 ob_clean();
-                error_log("❌ Error al crear cita en la BD");
+                error_log(" Error al crear cita en la BD");
                 echo json_encode(["success" => false, "error" => "No se pudo registrar la cita"]);
             }
 
         } catch (PDOException $e) {
             http_response_code(500);
             ob_clean();
-            error_log("❌ Error PDO: " . $e->getMessage());
+            error_log(" Error PDO: " . $e->getMessage());
             echo json_encode(["success" => false, "error" => "Error de base de datos: " . $e->getMessage()]);
         } catch (Exception $e) {
             http_response_code(500);
             ob_clean();
-            error_log("❌ Excepción general: " . $e->getMessage());
+            error_log(" Excepción general: " . $e->getMessage());
             echo json_encode(["success" => false, "error" => "Excepción: " . $e->getMessage()]);
+        }
+        break;
+    
+    // ----------------------
+// Obtener horas ocupadas por fecha
+// ----------------------
+    case 'horas_ocupadas':
+
+        $fecha = $_GET['fecha'] ?? null;
+
+        if (!$fecha) {
+        ob_clean();
+        echo json_encode([
+            "success" => false,
+            "horas_ocupadas" => []
+        ]);
+        break;
+    }
+
+        try {
+            $stmt = $db->prepare("
+            SELECT hora
+            FROM citas
+            WHERE fecha = :fecha
+        ");
+
+        $stmt->execute([
+            ':fecha' => $fecha
+        ]);
+
+        $horas = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        ob_clean();
+        echo json_encode([
+            "success" => true,
+            "horas_ocupadas" => $horas
+        ]);
+
+    } catch (PDOException $e) {
+        http_response_code(500);
+        ob_clean();
+        echo json_encode([
+            "success" => false,
+            "horas_ocupadas" => [],
+            "error" => $e->getMessage()
+        ]);
+    }
+
+    break;
+
+// ========================================
+// AGREGAR ESTOS CASOS AL SWITCH EN index.php
+// ========================================
+
+    // ----------------------
+    // Obtener citas del usuario autenticado
+    // ----------------------
+    case 'mis_citas':
+        try {
+            // Verificar token JWT
+            $usuarioData = AuthMiddleware::verificarToken();
+            
+            if (!isset($usuarioData->cliente_id)) {
+                http_response_code(400);
+                ob_clean();
+                echo json_encode([
+                    "success" => false,
+                    "error" => "No se encontró cliente_id en el token"
+                ]);
+                break;
+            }
+            
+            $cliente_id = $usuarioData->cliente_id;
+            
+            // Consultar citas del cliente
+            $stmt = $db->prepare("
+                SELECT 
+                    c.id, 
+                    c.fecha, 
+                    c.hora, 
+                    c.estado, 
+                    c.tipo_servicio,
+                    c.servicio_id
+                FROM citas c
+                WHERE c.cliente_id = :cliente_id
+                ORDER BY c.fecha DESC, c.hora DESC
+            ");
+            
+            $stmt->execute([':cliente_id' => $cliente_id]);
+            $citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            ob_clean();
+            echo json_encode([
+                'success' => true,
+                'citas' => $citas
+            ]);
+            
+        } catch (Exception $e) {
+            http_response_code(500);
+            ob_clean();
+            echo json_encode([
+                'success' => false,
+                'error' => 'Error al obtener citas: ' . $e->getMessage()
+            ]);
+        }
+        break;
+
+    // ----------------------
+    // Cancelar cita
+    // ----------------------
+    case 'cancelar_cita':
+        try {
+            // Verificar token JWT
+            $usuarioData = AuthMiddleware::verificarToken();
+            
+            if (!isset($usuarioData->cliente_id)) {
+                http_response_code(400);
+                ob_clean();
+                echo json_encode([
+                    "success" => false,
+                    "error" => "No se encontró cliente_id en el token"
+                ]);
+                break;
+            }
+            
+            $cliente_id = $usuarioData->cliente_id;
+            
+            // Obtener datos del POST
+            $data = json_decode(file_get_contents('php://input'), true);
+            
+            if (!isset($data['cita_id'])) {
+                http_response_code(400);
+                ob_clean();
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'ID de cita no proporcionado'
+                ]);
+                break;
+            }
+            
+            $cita_id = intval($data['cita_id']);
+            
+            // Verificar que la cita pertenece al usuario
+            $stmt = $db->prepare("
+                SELECT id, estado 
+                FROM citas 
+                WHERE id = :cita_id AND cliente_id = :cliente_id
+            ");
+            
+            $stmt->execute([
+                ':cita_id' => $cita_id,
+                ':cliente_id' => $cliente_id
+            ]);
+            
+            $cita = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$cita) {
+                http_response_code(404);
+                ob_clean();
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Cita no encontrada o no pertenece a este usuario'
+                ]);
+                break;
+            }
+            
+            if ($cita['estado'] !== 'pendiente') {
+                http_response_code(400);
+                ob_clean();
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Solo se pueden cancelar citas en estado pendiente'
+                ]);
+                break;
+            }
+            
+            // Actualizar estado a cancelada
+            $updateStmt = $db->prepare("
+                UPDATE citas 
+                SET estado = 'cancelada' 
+                WHERE id = :cita_id
+            ");
+            
+            if ($updateStmt->execute([':cita_id' => $cita_id])) {
+                ob_clean();
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Cita cancelada correctamente'
+                ]);
+            } else {
+                http_response_code(500);
+                ob_clean();
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Error al cancelar la cita'
+                ]);
+            }
+            
+        } catch (Exception $e) {
+            http_response_code(500);
+            ob_clean();
+            echo json_encode([
+                'success' => false,
+                'error' => 'Error al cancelar cita: ' . $e->getMessage()
+            ]);
         }
         break;
 

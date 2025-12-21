@@ -1,24 +1,43 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Seleccionar Fecha - ProBarberSystem</title>
-  <link rel="stylesheet" href="../css/styles.css">
-</head>
-<body>
-  <header>
-    <h1>Selecciona la Fecha de tu Cita</h1>
-  </header>
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Fecha - ProBarberSystem</title>
+    <link rel="stylesheet" href="../css/styles.css">
+  </head>
+  <body>
 
-  <main>
-    <form id="fechaForm">
-        <label for="fecha">Selecciona la fecha:</label>
-        <input type="date" id="fecha" name="fecha" required>
-        <button id="btnSiguienteFecha">Siguiente</button>
+    <div class="auth-container fecha-container">
 
-    </form>
-  </main>
+      <h1>SELECCIONAR FECHA</h1>
 
-  <script src="../js/reservas.js"></script>
-</body>
-</html>
+      <form id="fechaForm" class="auth-form">
+
+        <div class="input-group">
+          <span>📅</span>
+          <input
+            type="date"
+            id="fecha"
+            name="fecha"
+            required
+          >
+        </div>
+
+        <button
+          type="submit"
+          id="btnSiguienteFecha"
+          class="btn-primary"
+        >
+          SIGUIENTE
+        </button>
+
+      </form>
+
+      <div id="mensaje" class="mensaje"></div>
+
+    </div>
+
+    <script src="../js/reservas.js"></script>
+  </body>
+  </html>

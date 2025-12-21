@@ -2,27 +2,30 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ProBarberSystem - Login</title>
-  <link rel="stylesheet" href="../css/styles.css"> <!-- Ajusta la ruta según tu estructura -->
+  <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
-  <div class="login-container">
-    <h1>Iniciar sesión</h1>
 
-    <form id="loginForm">
-      <label for="logEmail">Correo electrónico:</label>
-      <input type="email" id="logEmail" placeholder="email@ejemplo.com" required><br>
-
-      <label for="logPassword">Contraseña:</label>
-      <input type="password" id="logPassword" placeholder="Contraseña" required><br>
-
-      <button type="submit">Login</button>
+  <div class="auth-container">
+    <form id="loginForm" class="auth-form">
+      <h1>INICIAR SESIÓN</h1>
+      <!-- Email -->
+      <div class="input-group">
+        <span>📧</span>
+        <input type="email" id="logEmail" placeholder="Correo" required>
+      </div>
+      <!-- Password -->
+      <div class="input-group">
+        <span>🔒</span>
+        <input type="password" id="logPassword" placeholder="Contraseña" required>
+      </div>
+      <button type="submit" class="btn-primary">INICIAR SESIÓN</button>
     </form>
-
     <div id="mensaje" class="mensaje"></div>
   </div>
 
-
-  <script src="../js/login.js"></script>
+  <script src="../js/login.js" defer></script>
 </body>
 </html>

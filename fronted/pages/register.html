@@ -2,35 +2,77 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ProBarberSystem - Registro</title>
   <link rel="stylesheet" href="../css/styles.css"> 
 </head>
 <body>
-  <div class="register-container">
-    <h1>Registrarse</h1>
 
-    <form id="registerForm">
+  <div class="auth-container register-container">
+    <h1>NUEVA CUENTA</h1>
+
+    <form id="registerForm" class="auth-form">
+
       <!-- Nombre obligatorio -->
-      <label for="regNombre">Nombre:</label>
-      <input type="text" id="regNombre" placeholder="Nombre" required><br>
+      <div class="input-group">
+        <span>👤</span>
+        <input
+          type="text"
+          id="regNombre"
+          placeholder="Nombre"
+          required
+        >
+      </div>
 
       <!-- Apellidos opcionales -->
-      <label for="regApellidos">Apellidos:</label>
-      <input type="text" id="regApellidos" placeholder="Apellidos (opcional)"><br>
+      <div class="input-group">
+        <span>🧾</span>
+        <input
+          type="text"
+          id="regApellidos"
+          placeholder="Apellidos (opcional)"
+        >
+      </div>
 
       <!-- Teléfono -->
-      <label for="regTelefono">Teléfono:</label>
-      <input type="text" id="regTelefono" placeholder="Telefono" required><br>
+      <div class="input-group">
+        <span>📞</span>
+        <input
+          type="tel"
+          inputmode="numeric"
+          pattern="[0-9]{9}"
+          id="regTelefono"
+          placeholder="Teléfono"
+          required
+        >
+      </div>
 
       <!-- Correo electrónico -->
-      <label for="regEmail">Correo electrónico:</label>
-      <input type="email" id="regEmail" placeholder="Email" required><br>
+      <div class="input-group">
+        <span>📧</span>
+        <input
+          type="email"
+          id="regEmail"
+          placeholder="Correo electrónico"
+          required
+        >
+      </div>
 
       <!-- Contraseña -->
-      <label for="regPassword">Contraseña:</label>
-      <input type="password" id="regPassword" placeholder="Contraseña" required><br>
+      <div class="input-group">
+        <span>🔒</span>
+        <input
+          type="password"
+          id="regPassword"
+          placeholder="Contraseña"
+          required
+        >
+      </div>
 
-      <button type="submit">Registrarse</button>
+      <button type="submit" class="btn-primary">
+        REGISTRARSE
+      </button>
+
     </form>
 
     <div id="mensaje" class="mensaje"></div>

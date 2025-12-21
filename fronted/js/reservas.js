@@ -1,12 +1,12 @@
 // =======================================
 // VARIABLES COMUNES
 // =======================================
-const backendURL = "http://localhost/ProBarberSystem/backend/index.php";
+const backendURL = "http://192.168.1.39/ProBarberSystem/backend/index.php";
 let reserva = {
   fecha: "",
   hora: "",
   servicio_id: null,
-  servicio_nombre: "", // 👈 Añadimos el nombre del servicio
+  servicio_nombre: "",
   cliente_id: null
 };
 
@@ -14,16 +14,16 @@ let reserva = {
 function obtenerClienteID() {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
-    console.error("❌ No hay token JWT");
+    console.error("No hay token JWT");
     return null;
   }
   
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    console.log("✅ Cliente ID obtenido:", payload.data.cliente_id);
+    console.log("Cliente ID obtenido:", payload.data.cliente_id);
     return payload.data.cliente_id;
   } catch (error) {
-    console.error("❌ Error al decodificar JWT:", error);
+    console.error("Error al decodificar JWT:", error);
     return null;
   }
 }
@@ -31,51 +31,51 @@ function obtenerClienteID() {
 // 1️⃣ Seleccionar fecha
 function guardarFecha() {
   const fechaInput = document.getElementById("fecha");
-  const btnSiguiente = document.getElementById("btnSiguienteFecha");
-  if (!fechaInput || !btnSiguiente) return;
+  const fechaForm = document.getElementById("fechaForm");
+  if (!fechaInput || !fechaForm) return;
 
-  // Establecer fecha mínima como hoy
   const hoy = new Date().toISOString().split('T')[0];
   fechaInput.setAttribute('min', hoy);
 
-  btnSiguiente.addEventListener("click", (e) => {
+  fechaForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    
+
     if (!fechaInput.value) {
-      alert("⚠️ Selecciona una fecha");
+      alert("Selecciona una fecha");
       return;
     }
 
-    // Validar que la fecha no sea pasada
     const fechaSeleccionada = new Date(fechaInput.value);
     const hoyDate = new Date();
     hoyDate.setHours(0, 0, 0, 0);
 
     if (fechaSeleccionada < hoyDate) {
-      alert("⚠️ No puedes seleccionar una fecha pasada");
+      alert("No puedes seleccionar una fecha pasada");
       return;
     }
 
     reserva.fecha = fechaInput.value;
-    reserva.cliente_id = obtenerClienteID(); // 👈 Obtenemos cliente_id desde el inicio
-    
+    reserva.cliente_id = obtenerClienteID();
+
     if (!reserva.cliente_id) {
-      alert("❌ Debes iniciar sesión primero");
+      alert("Debes iniciar sesión primero");
       window.location.href = "login.html";
       return;
     }
 
     localStorage.setItem("reserva", JSON.stringify(reserva));
-    console.log("✅ Fecha guardada:", reserva);
+    console.log("Fecha guardada:", reserva);
     window.location.href = "seleccionar_hora.html";
   });
 }
 
 // 2️⃣ Seleccionar hora
 function cargarHorasDisponibles() {
-  const horaSelect = document.getElementById("hora");
+  const horasGrid = document.getElementById("horasGrid");
+  const horaForm = document.getElementById("horaForm");
   const btnSiguiente = document.getElementById("btnSiguienteHora");
-  if (!horaSelect || !btnSiguiente) return;
+
+  if (!horasGrid || !horaForm || !btnSiguiente) return;
 
   const horasDisponibles = [
     "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
@@ -84,26 +84,38 @@ function cargarHorasDisponibles() {
     "19:00", "19:30", "20:00", "20:30"
   ];
 
-  horaSelect.innerHTML = '<option value="">-- Selecciona una hora --</option>';
-  horasDisponibles.forEach(h => {
-    const option = document.createElement("option");
-    option.value = h;
-    option.textContent = h;
-    horaSelect.appendChild(option);
+  btnSiguiente.disabled = true;
+  horasGrid.innerHTML = "";
+
+  horasDisponibles.forEach(hora => {
+    const div = document.createElement("div");
+    div.className = "hora-btn"; 
+    div.textContent = hora;
+
+    div.addEventListener("click", () => {
+      document.querySelectorAll(".hora-btn")
+        .forEach(h => h.classList.remove("selected"));
+
+      div.classList.add("selected");
+
+      reserva = JSON.parse(localStorage.getItem("reserva")) || {};
+      reserva.hora = hora;
+      localStorage.setItem("reserva", JSON.stringify(reserva));
+
+      btnSiguiente.disabled = false;
+    });
+
+    horasGrid.appendChild(div);
   });
 
-  btnSiguiente.addEventListener("click", (e) => {
+  horaForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    
-    if (!horaSelect.value) {
-      alert("⚠️ Selecciona una hora");
+
+    if (!reserva.hora) {
+      alert("Selecciona una hora");
       return;
     }
 
-    reserva = JSON.parse(localStorage.getItem("reserva")) || {};
-    reserva.hora = horaSelect.value;
-    localStorage.setItem("reserva", JSON.stringify(reserva));
-    console.log("✅ Hora guardada:", reserva);
     window.location.href = "seleccionar_servicio.html";
   });
 }
@@ -111,36 +123,34 @@ function cargarHorasDisponibles() {
 // 3️⃣ Seleccionar servicio
 function guardarServicio() {
   const servicioSelect = document.getElementById("servicio");
-  const btnSiguiente = document.getElementById("btnSiguienteServicio");
-  if (!servicioSelect || !btnSiguiente) return;
+  const servicioForm = document.getElementById("servicioForm");
+  if (!servicioSelect || !servicioForm) return;
 
-  btnSiguiente.addEventListener("click", (e) => {
+  servicioForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    
+
     if (!servicioSelect.value) {
-      alert("⚠️ Selecciona un servicio");
+      alert("Selecciona un servicio");
       return;
     }
 
     reserva = JSON.parse(localStorage.getItem("reserva")) || {};
 
-    // 👇 Guardar tanto el ID como el nombre del servicio
     reserva.servicio_id = parseInt(servicioSelect.value);
     reserva.servicio_nombre = servicioSelect.options[servicioSelect.selectedIndex].text;
 
-    // Asegurar que cliente_id esté presente
     if (!reserva.cliente_id) {
       reserva.cliente_id = obtenerClienteID();
     }
 
     if (!reserva.cliente_id) {
-      alert("❌ Debes iniciar sesión primero");
+      alert("Debes iniciar sesión primero");
       window.location.href = "login.html";
       return;
     }
 
     localStorage.setItem("reserva", JSON.stringify(reserva));
-    console.log("✅ Servicio guardado:", reserva);
+    console.log("Servicio guardado:", reserva);
     window.location.href = "resumen_cita.html";
   });
 }
@@ -151,48 +161,38 @@ function mostrarResumen() {
   const btnConfirmar = document.getElementById("btnConfirmarCita");
   if (!output || !btnConfirmar) return;
 
-  // Cargar datos de localStorage
   reserva = JSON.parse(localStorage.getItem("reserva")) || {};
-
-  // Verificar que cliente_id esté presente
   if (!reserva.cliente_id) {
     reserva.cliente_id = obtenerClienteID();
   }
 
-  // Validar datos completos
   if (!reserva.fecha || !reserva.hora || !reserva.servicio_id || !reserva.cliente_id) {
     output.innerHTML = `
-      <p style="color: red;">❌ Faltan datos de la reserva.</p>
+      <p style="color: red;">Faltan datos de la reserva.</p>
       <p>Por favor, completa el proceso desde el inicio.</p>
     `;
     btnConfirmar.disabled = true;
     return;
   }
 
-  // Mostrar resumen con formato bonito
   output.innerHTML = `
-    <h2 style="color: #222; margin-bottom: 20px;">📋 Confirmación de Cita</h2>
-    <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-      <p><strong>📅 Fecha:</strong> ${formatearFecha(reserva.fecha)}</p>
-      <p><strong>⏰ Hora:</strong> ${reserva.hora}</p>
-      <p><strong>💈 Servicio:</strong> ${reserva.servicio_nombre || 'Servicio seleccionado'}</p>
+    <h2>Confirmación de Cita</h2>
+    <div>
+      <p><strong> Fecha:</strong> ${formatearFecha(reserva.fecha)}</p>
+      <p><strong> Hora:</strong> ${reserva.hora}</p>
+      <p><strong> Servicio:</strong> ${reserva.servicio_nombre || 'Servicio seleccionado'}</p>
     </div>
-    <p style="color: #666; font-size: 0.9em;">
-      Por favor, revisa que todos los datos sean correctos antes de confirmar.
-    </p>
+    <p>Por favor, revisa que todos los datos sean correctos antes de confirmar.</p>
   `;
 
-  console.log("📋 Datos a enviar:", reserva);
+  console.log(" Datos a enviar:", reserva);
 
-  // Evento del botón confirmar
   btnConfirmar.addEventListener("click", async () => {
-    // Validación final antes de enviar
     if (!reserva.fecha || !reserva.hora || !reserva.servicio_id || !reserva.cliente_id) {
-      alert("❌ Datos incompletos. Por favor, reinicia el proceso de reserva.");
+      alert(" Datos incompletos. Por favor, reinicia el proceso de reserva.");
       return;
     }
 
-    // Preparar datos para enviar (solo los necesarios para el backend)
     const datosEnviar = {
       fecha: reserva.fecha,
       hora: reserva.hora,
@@ -200,71 +200,120 @@ function mostrarResumen() {
       cliente_id: reserva.cliente_id
     };
 
-    console.log("📤 Enviando al backend:", datosEnviar);
-
-    // Deshabilitar botón mientras se procesa
-    btnConfirmar.disabled = true;
-    btnConfirmar.textContent = "Procesando...";
-
     try {
+      const jsonString = JSON.stringify(datosEnviar);
+      console.log(" JSON que se enviará:", jsonString);
+      console.log(" URL destino:", `${backendURL}?action=reservar`);
+
+      btnConfirmar.disabled = true;
+      btnConfirmar.textContent = "Procesando...";
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       const res = await fetch(`${backendURL}?action=reservar`, {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json"
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
         },
-        body: JSON.stringify(datosEnviar)
+        body: jsonString,
+        signal: controller.signal,
+        mode: 'cors',
+        cache: 'no-cache'
       });
 
-      console.log("📥 Respuesta del servidor - Status:", res.status);
+      clearTimeout(timeoutId);
 
-      const data = await res.json();
-      console.log("📥 Respuesta del servidor - Data:", data);
+      console.log(" Respuesta del servidor - Status:", res.status);
+      console.log(" Headers:", [...res.headers.entries()]);
+
+      const responseText = await res.text();
+      console.log(" Respuesta RAW:", responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error(" Error parseando JSON:", parseError);
+        throw new Error(`Respuesta no válida del servidor: ${responseText.substring(0, 100)}`);
+      }
+
+      console.log(" Respuesta del servidor - Data:", data);
 
       if (res.ok && data.success) {
-        alert("✅ ¡Cita confirmada correctamente!");
+        alert(" ¡Cita confirmada correctamente!");
         localStorage.removeItem("reserva");
-        window.location.href = "home.html"; // O la página que corresponda
+        //  CAMBIO: Redirigir a mis_citas.html en lugar de home.html
+        window.location.href = "mis_citas.html";
       } else {
-        alert(`❌ Error: ${data.error || 'No se pudo reservar la cita'}`);
-        btnConfirmar.disabled = false;
-        btnConfirmar.textContent = "Confirmar Cita";
+        throw new Error(data.error || data.message || 'No se pudo reservar la cita');
       }
     } catch (err) {
-      console.error("❌ Error de conexión:", err);
-      alert(`❌ Error de conexión: ${err.message}`);
+      console.error("❌ Error completo:", err);
+     
+      let mensajeError = "Error de conexión";
+     
+      if (err.name === 'AbortError') {
+        mensajeError = " Tiempo de espera agotado. Verifica tu conexión a internet.";
+      } else if (err.message.includes('Failed to fetch') || err.message.includes('Load failed')) {
+        mensajeError = ` No se puede conectar al servidor.
+       
+Verifica:
+• Tu móvil está en la misma red WiFi que el PC
+• La IP del servidor es correcta: ${backendURL}
+• El firewall de Windows permite conexiones entrantes
+• Apache está ejecutándose en el PC`;
+      } else {
+        mensajeError = ` ${err.message}`;
+      }
+     
+      alert(mensajeError);
       btnConfirmar.disabled = false;
       btnConfirmar.textContent = "Confirmar Cita";
     }
   });
 }
 
-// Función auxiliar para formatear fecha
+// Formatear fecha
 function formatearFecha(fecha) {
   const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  const fechaObj = new Date(fecha + 'T00:00:00'); // Evitar problemas de zona horaria
+  const fechaObj = new Date(fecha + 'T00:00:00');
   return fechaObj.toLocaleDateString('es-ES', opciones);
+}
+
+// =======================================
+// TEST DE CONECTIVIDAD (útil para debug)
+// =======================================
+async function testConexion() {
+  try {
+    console.log(" Probando conexión a:", backendURL);
+    const res = await fetch(backendURL, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-cache'
+    });
+    console.log(" Conexión OK, status:", res.status);
+    return true;
+  } catch (err) {
+    console.error(" Error de conexión:", err);
+    return false;
+  }
 }
 
 // =======================================
 // EJECUTAR SEGÚN PÁGINA
 // =======================================
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("✅ reservas.js cargado");
+  console.log(" reservas.js cargado");
   
-  if (document.getElementById("fecha")) {
-    console.log("📅 Cargando página de selección de fecha");
-    guardarFecha();
-  }
-  if (document.getElementById("hora")) {
-    console.log("⏰ Cargando página de selección de hora");
-    cargarHorasDisponibles();
-  }
-  if (document.getElementById("servicio")) {
-    console.log("💈 Cargando página de selección de servicio");
-    guardarServicio();
-  }
-  if (document.getElementById("output")) {
-    console.log("📋 Cargando página de resumen");
-    mostrarResumen();
-  }
+  // Test de conectividad al cargar (opcional)
+  testConexion();
+  
+  if (document.getElementById("fecha")) guardarFecha();
+  if (document.getElementById("horasGrid")) cargarHorasDisponibles();
+  if (document.getElementById("servicio")) guardarServicio();
+  if (document.getElementById("output")) mostrarResumen();
 });
+
+

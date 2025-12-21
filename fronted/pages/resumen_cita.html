@@ -2,19 +2,22 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Resumen de Cita - ProBarberSystem</title>
   <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
-  <header>
-    <h1>Resumen de tu Cita</h1>
-  </header>
+  <!-- Usar resumen-container en lugar de un contenedor genérico -->
+  <div class="auth-container fecha-container">
+    <h1>RESUMEN</h1>
+    
+    <!-- El contenido se genera dinámicamente desde reservas.js -->
+    <div id="output"></div>
+    
+    <button id="btnConfirmarCita" class="btn-primary">CONFIRMAR CITA</button>
+  </div>
 
-  <main>
-    <div id="output" style="white-space: pre-line; font-size: 1.2em; margin-bottom: 20px;"></div>
-    <button id="btnConfirmarCita">Confirmar Cita</button>
-  </main>
 
-  <script src="../js/reservas.js"></script>
+<script src="../js/reservas.js"></script>
 </body>
 </html>

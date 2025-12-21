@@ -133,7 +133,7 @@ class UsuarioController
             return;
         }
 
-        // 👇 BUSCAR O CREAR cliente_id automáticamente
+        //  BUSCAR O CREAR cliente_id automáticamente
         $stmt = $this->db->prepare("SELECT id FROM clientes WHERE email = :email LIMIT 1");
         $stmt->execute([':email' => $usuario['email']]);
         $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -141,10 +141,10 @@ class UsuarioController
         $cliente_id = null;
 
         if ($cliente) {
-            // ✅ Cliente ya existe
+            //  Cliente ya existe
             $cliente_id = $cliente['id'];
         } else {
-            // 🔧 Cliente NO existe, lo creamos automáticamente
+            //  Cliente NO existe, lo creamos automáticamente
             $stmtInsert = $this->db->prepare(
                 "INSERT INTO clientes (nombre, telefono, email, notas) 
                  VALUES (:nombre, :telefono, :email, :notas)"

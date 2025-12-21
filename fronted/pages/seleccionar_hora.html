@@ -2,21 +2,23 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seleccionar Hora - ProBarberSystem</title>
   <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
-  <header>
-    <h1>Selecciona la Hora de tu Cita</h1>
-  </header>
 
-  <main>
-    <form id="horaForm">
-      <label for="hora">Hora:</label>
-      <select id="hora"></select>
-      <button id="btnSiguienteHora">Siguiente</button>
+  <div class="auth-container fecha-container">
+    <h1>SELECCIONAR HORA</h1>
+    <form id="horaForm" class="auth-form">
+      <div class="input-group">
+        <div id="horasGrid" class="horas-grid"></div>
+        <input type="hidden" id="horaSeleccionada">
+      </div>
+      <button type="submit" id="btnSiguienteHora" class="btn-primary">SIGUIENTE</button>
     </form>
-  </main>
+    <div id="mensaje" class="mensaje"></div>
+  </div>
 
   <script src="../js/reservas.js"></script>
 </body>

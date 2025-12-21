@@ -2,24 +2,40 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seleccionar Servicio - ProBarberSystem</title>
   <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
-  <header>
-    <h1>Selecciona el Servicio</h1>
-  </header>
 
-  <main>
-    <form id="servicioForm">
-      <label for="servicio">Servicio:</label>
-      <select id="servicio">
-        <option value="1">Corte Personalizado (€15 - 30 min)</option>
-        <option value="2">Corte + Barba (€20 - 45 min)</option>
-      </select>
-      <button id="btnSiguienteServicio">Siguiente</button>
+  <div class="auth-container fecha-container">
+
+    <h1>SELECCIONAR SERVICIO</h1>
+
+    <form id="servicioForm" class="auth-form">
+
+      <div class="input-group">
+        <span>💈</span>
+        <select id="servicio" required>
+          <option value="" disabled selected>Selecciona un servicio</option>
+          <option value="1">Corte Personalizado (12€)</option>
+          <option value="2">Corte + Barba (16€)</option>
+        </select>
+      </div>
+
+      <button
+        type="submit"
+        id="btnSiguienteServicio"
+        class="btn-primary"
+      >
+        SIGUIENTE
+      </button>
+
     </form>
-  </main>
+
+    <div id="mensaje" class="mensaje"></div>
+
+  </div>
 
   <script src="../js/reservas.js"></script>
 </body>
