@@ -1,4 +1,4 @@
-const backendURL = "http://192.168.1.39/ProBarberSystem/backend/index.php";
+const backendURL = "http://192.168.1.35/ProBarberSystem/backend/index.php";
 
 // Esperar a que el DOM esté completamente cargado
 window.addEventListener('DOMContentLoaded', function() {
@@ -114,7 +114,7 @@ async function cargarCitas(token, contenedor) {
       div.innerHTML = `
         <div class="cita-info">
           <p><strong> Fecha:</strong> ${fechaFormateada}</p>
-          <p><strong> Hora:</strong> ${cita.hora}</p>
+          <p><strong> Hora:</strong> ${cita.hora.slice(0,5)}</p>
           <p><strong> Servicio:</strong> ${cita.tipo_servicio || 'Corte de pelo'}</p>
           <div style="margin-top: 12px;">
             ${estadoHTML}

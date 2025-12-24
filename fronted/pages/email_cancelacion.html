@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProBarberSystem - Email Cancelación</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    
+    <div id="pbs-cancel-mail-root">
+    <div id="pbs-cancel-mail-wrapper">
+
+        <div id="pbs-cancel-mail-header">
+            <h1>💈 ProBarberSystem</h1>
+        </div>
+
+        <div id="pbs-cancel-mail-content">
+            <h2>Hola {{NOMBRE}},</h2>
+            <p>Tu cita ha sido <strong>cancelada</strong>.</p>
+
+            <div id="pbs-cancel-mail-appointment">
+                <p><strong>📅 Fecha:</strong> {{FECHA}}</p>
+                <p><strong>🕐 Hora:</strong> {{HORA}}</p>
+                <p><strong>💈 Servicio:</strong> {{SERVICIO}}</p>
+            </div>
+
+            <p>Puedes reservar una nueva cita cuando lo desees desde la aplicación.</p>
+            <p>¡Esperamos verte pronto! 😊</p>
+        </div>
+
+        <div id="pbs-cancel-mail-footer">
+            <p>Este es un email automático, por favor no respondas a este mensaje.</p>
+            <p>&copy; 2025 ProBarberSystem</p>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

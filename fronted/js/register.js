@@ -1,6 +1,6 @@
 const registerForm = document.getElementById("registerForm");
 const mensajeDiv = document.getElementById("mensaje");
-const backendURL = "http://192.168.1.39/ProBarberSystem/backend/index.php";
+const backendURL = "http://192.168.1.35/ProBarberSystem/backend/index.php";
 
 registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();

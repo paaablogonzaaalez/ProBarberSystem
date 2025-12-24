@@ -1,7 +1,7 @@
 // =======================================
 // VARIABLES COMUNES
 // =======================================
-const backendURL = "http://192.168.1.39/ProBarberSystem/backend/index.php";
+const backendURL = "http://192.168.1.35/ProBarberSystem/backend/index.php";
 let reserva = {
   fecha: "",
   hora: "",
@@ -14,21 +14,21 @@ let reserva = {
 function obtenerClienteID() {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
-    console.error("No hay token JWT");
+    console.error(" No hay token JWT");
     return null;
   }
-  
+ 
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    console.log("Cliente ID obtenido:", payload.data.cliente_id);
+    console.log(" Cliente ID obtenido:", payload.data.cliente_id);
     return payload.data.cliente_id;
   } catch (error) {
-    console.error("Error al decodificar JWT:", error);
+    console.error(" Error al decodificar JWT:", error);
     return null;
   }
 }
 
-// 1️⃣ Seleccionar fecha
+// 1️. Seleccionar fecha
 function guardarFecha() {
   const fechaInput = document.getElementById("fecha");
   const fechaForm = document.getElementById("fechaForm");
@@ -41,7 +41,7 @@ function guardarFecha() {
     e.preventDefault();
 
     if (!fechaInput.value) {
-      alert("Selecciona una fecha");
+      alert(" Selecciona una fecha");
       return;
     }
 
@@ -50,7 +50,7 @@ function guardarFecha() {
     hoyDate.setHours(0, 0, 0, 0);
 
     if (fechaSeleccionada < hoyDate) {
-      alert("No puedes seleccionar una fecha pasada");
+      alert(" No puedes seleccionar una fecha pasada");
       return;
     }
 
@@ -58,24 +58,27 @@ function guardarFecha() {
     reserva.cliente_id = obtenerClienteID();
 
     if (!reserva.cliente_id) {
-      alert("Debes iniciar sesión primero");
+      alert(" Debes iniciar sesión primero");
       window.location.href = "login.html";
       return;
     }
 
     localStorage.setItem("reserva", JSON.stringify(reserva));
-    console.log("Fecha guardada:", reserva);
+    console.log(" Fecha guardada:", reserva);
     window.location.href = "seleccionar_hora.html";
   });
 }
 
-// 2️⃣ Seleccionar hora
-function cargarHorasDisponibles() {
+// 2️. Seleccionar hora (CON CARGA DE HORAS OCUPADAS - MEJORADO)
+async function cargarHorasDisponibles() {
   const horasGrid = document.getElementById("horasGrid");
   const horaForm = document.getElementById("horaForm");
   const btnSiguiente = document.getElementById("btnSiguienteHora");
 
-  if (!horasGrid || !horaForm || !btnSiguiente) return;
+  if (!horasGrid || !horaForm || !btnSiguiente) {
+    console.error(" No se encontraron elementos necesarios");
+    return;
+  }
 
   const horasDisponibles = [
     "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
@@ -85,34 +88,120 @@ function cargarHorasDisponibles() {
   ];
 
   btnSiguiente.disabled = true;
+  horasGrid.innerHTML = "<p style='text-align: center; opacity: 0.7; grid-column: 1 / -1;'>Cargando horas disponibles...</p>";
+
+  //  CARGAR HORAS OCUPADAS DESDE EL BACKEND
+  reserva = JSON.parse(localStorage.getItem("reserva")) || {};
+  let horasOcupadas = [];
+
+  if (!reserva.fecha) {
+    console.error(" No hay fecha en localStorage");
+    horasGrid.innerHTML = "<p style='color: red; grid-column: 1 / -1;'>Error: No se ha seleccionado una fecha</p>";
+    return;
+  }
+
+  try {
+    const url = `${backendURL}?action=horas_ocupadas&fecha=${encodeURIComponent(reserva.fecha)}`;
+    console.log(" Consultando horas ocupadas...");
+    console.log(" URL:", url);
+    console.log(" Fecha:", reserva.fecha);
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      mode: 'cors',
+      cache: 'no-cache'
+    });
+
+    console.log(" Status de respuesta:", res.status);
+    
+    const responseText = await res.text();
+    console.log(" Respuesta RAW:", responseText);
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error(" Error parseando JSON:", parseError);
+      data = { success: false, horas_ocupadas: [] };
+    }
+
+    console.log(" Datos parseados:", data);
+
+    if (data.success && Array.isArray(data.horas_ocupadas)) {
+      horasOcupadas = data.horas_ocupadas;
+      console.log(" Horas ocupadas recibidas:", horasOcupadas);
+      console.log(" Total horas ocupadas:", horasOcupadas.length);
+    } else {
+      console.warn(" No se pudieron cargar las horas ocupadas, continuando sin ellas");
+      horasOcupadas = [];
+    }
+  } catch (error) {
+    console.error(" Error al cargar horas ocupadas:", error);
+    console.error("   Mensaje:", error.message);
+    horasOcupadas = [];
+  }
+
+  // Limpiar y crear grid de horas
   horasGrid.innerHTML = "";
 
-  horasDisponibles.forEach(hora => {
+  horasDisponibles.forEach((hora, index) => {
     const div = document.createElement("div");
-    div.className = "hora-btn"; 
+    div.className = "hora-btn";
     div.textContent = hora;
 
-    div.addEventListener("click", () => {
-      document.querySelectorAll(".hora-btn")
-        .forEach(h => h.classList.remove("selected"));
-
-      div.classList.add("selected");
-
-      reserva = JSON.parse(localStorage.getItem("reserva")) || {};
-      reserva.hora = hora;
-      localStorage.setItem("reserva", JSON.stringify(reserva));
-
-      btnSiguiente.disabled = false;
+    //  VERIFICAR SI LA HORA ESTÁ OCUPADA (con normalización de formato)
+    const estaOcupada = horasOcupadas.some(horaOcupada => {
+      // Normalizar las horas eliminando segundos si existen
+      // "18:00:00" -> "18:00"
+      // "18:00" -> "18:00"
+      const horaLimpia = String(horaOcupada).trim().substring(0, 5);
+      const horaActual = String(hora).trim();
+      return horaLimpia === horaActual;
     });
+
+    console.log(` Hora ${hora}: ${estaOcupada ? ' OCUPADA' : ' disponible'}`);
+
+    if (estaOcupada) {
+      div.classList.add("ocupada");
+      div.style.cursor = "not-allowed";
+      div.style.pointerEvents = "none"; //  BLOQUEAR COMPLETAMENTE EL CLICK
+      div.title = " Hora no disponible";
+      console.log(`   → Aplicada clase 'ocupada' a ${hora}`);
+    } else {
+      // Solo permitir click en horas disponibles
+      div.addEventListener("click", () => {
+        console.log(` Click en hora disponible: ${hora}`);
+        
+        // Remover selección de otras horas disponibles
+        document.querySelectorAll(".hora-btn:not(.ocupada)")
+          .forEach(h => h.classList.remove("selected"));
+
+        div.classList.add("selected");
+
+        reserva = JSON.parse(localStorage.getItem("reserva")) || {};
+        reserva.hora = hora;
+        localStorage.setItem("reserva", JSON.stringify(reserva));
+
+        console.log(" Hora guardada en localStorage:", hora);
+
+        btnSiguiente.disabled = false;
+      });
+    }
 
     horasGrid.appendChild(div);
   });
+
+  console.log(" Grid de horas renderizado completamente");
 
   horaForm.addEventListener("submit", (e) => {
     e.preventDefault();
 
     if (!reserva.hora) {
-      alert("Selecciona una hora");
+      alert(" Selecciona una hora");
       return;
     }
 
@@ -120,7 +209,7 @@ function cargarHorasDisponibles() {
   });
 }
 
-// 3️⃣ Seleccionar servicio
+// 3️. Seleccionar servicio
 function guardarServicio() {
   const servicioSelect = document.getElementById("servicio");
   const servicioForm = document.getElementById("servicioForm");
@@ -130,7 +219,7 @@ function guardarServicio() {
     e.preventDefault();
 
     if (!servicioSelect.value) {
-      alert("Selecciona un servicio");
+      alert(" Selecciona un servicio");
       return;
     }
 
@@ -144,18 +233,18 @@ function guardarServicio() {
     }
 
     if (!reserva.cliente_id) {
-      alert("Debes iniciar sesión primero");
+      alert(" Debes iniciar sesión primero");
       window.location.href = "login.html";
       return;
     }
 
     localStorage.setItem("reserva", JSON.stringify(reserva));
-    console.log("Servicio guardado:", reserva);
+    console.log(" Servicio guardado:", reserva);
     window.location.href = "resumen_cita.html";
   });
 }
 
-// 4️⃣ Mostrar resumen y confirmar cita
+// 4️ Mostrar resumen y confirmar cita
 function mostrarResumen() {
   const output = document.getElementById("output");
   const btnConfirmar = document.getElementById("btnConfirmarCita");
@@ -168,7 +257,7 @@ function mostrarResumen() {
 
   if (!reserva.fecha || !reserva.hora || !reserva.servicio_id || !reserva.cliente_id) {
     output.innerHTML = `
-      <p style="color: red;">Faltan datos de la reserva.</p>
+      <p style="color: red;"> Faltan datos de la reserva.</p>
       <p>Por favor, completa el proceso desde el inicio.</p>
     `;
     btnConfirmar.disabled = true;
@@ -176,7 +265,7 @@ function mostrarResumen() {
   }
 
   output.innerHTML = `
-    <h2>Confirmación de Cita</h2>
+    <h2>📋 Confirmación de Cita</h2>
     <div>
       <p><strong> Fecha:</strong> ${formatearFecha(reserva.fecha)}</p>
       <p><strong> Hora:</strong> ${reserva.hora}</p>
@@ -185,7 +274,7 @@ function mostrarResumen() {
     <p>Por favor, revisa que todos los datos sean correctos antes de confirmar.</p>
   `;
 
-  console.log(" Datos a enviar:", reserva);
+  console.log("📋 Datos a enviar:", reserva);
 
   btnConfirmar.addEventListener("click", async () => {
     if (!reserva.fecha || !reserva.hora || !reserva.servicio_id || !reserva.cliente_id) {
@@ -244,13 +333,12 @@ function mostrarResumen() {
       if (res.ok && data.success) {
         alert(" ¡Cita confirmada correctamente!");
         localStorage.removeItem("reserva");
-        //  CAMBIO: Redirigir a mis_citas.html en lugar de home.html
         window.location.href = "mis_citas.html";
       } else {
         throw new Error(data.error || data.message || 'No se pudo reservar la cita');
       }
     } catch (err) {
-      console.error("❌ Error completo:", err);
+      console.error(" Error completo:", err);
      
       let mensajeError = "Error de conexión";
      
@@ -306,14 +394,11 @@ async function testConexion() {
 // =======================================
 document.addEventListener("DOMContentLoaded", () => {
   console.log(" reservas.js cargado");
-  
-  // Test de conectividad al cargar (opcional)
+ 
   testConexion();
-  
+ 
   if (document.getElementById("fecha")) guardarFecha();
   if (document.getElementById("horasGrid")) cargarHorasDisponibles();
   if (document.getElementById("servicio")) guardarServicio();
   if (document.getElementById("output")) mostrarResumen();
 });
-
-

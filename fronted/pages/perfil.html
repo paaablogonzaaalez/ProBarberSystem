@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil - ProBarberSystem</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+  <div class="auth-container" style="margin-top: 40px; margin-bottom: 40px;">
+    <h1>👤 MI PERFIL</h1>
+    
+    <!-- Modo visualización -->
+    <div id="perfilView" style="display: none;">
+      <div class="perfil-info">
+        <div class="perfil-item">
+          <span class="perfil-label">📝 Nombre completo</span>
+          <span class="perfil-value" id="viewNombre">-</span>
+        </div>
+        
+        <div class="perfil-item">
+          <span class="perfil-label">📧 Correo electrónico</span>
+          <span class="perfil-value" id="viewEmail">-</span>
+        </div>
+        
+        <div class="perfil-item">
+          <span class="perfil-label">📞 Teléfono</span>
+          <span class="perfil-value" id="viewTelefono">-</span>
+        </div>
+        
+        <div class="perfil-item">
+          <span class="perfil-label">📅 Miembro desde</span>
+          <span class="perfil-value" id="viewFechaRegistro">-</span>
+        </div>
+        
+        <div class="perfil-item">
+          <span class="perfil-label">💈 Total de citas</span>
+          <span class="perfil-value" id="viewTotalCitas">0</span>
+        </div>
+      </div>
+
+      <button id="btnEditarPerfil" class="btn-primary" style="margin-top: 20px;">
+        ✏️ Editar perfil
+      </button>
+    </div>
+
+    <!-- Modo edición -->
+    <div id="perfilEdit" style="display: none;">
+      <form id="perfilForm" class="auth-form">
+        
+        <div class="input-group">
+          <span>👤</span>
+          <input
+            type="text"
+            id="editNombre"
+            placeholder="Nombre"
+            required
+          >
+        </div>
+
+        <div class="input-group">
+          <span>🧾</span>
+          <input
+            type="text"
+            id="editApellidos"
+            placeholder="Apellidos (opcional)"
+          >
+        </div>
+
+        <div class="input-group">
+          <span>📞</span>
+          <input
+            type="tel"
+            inputmode="numeric"
+            pattern="[0-9]{9}"
+            id="editTelefono"
+            placeholder="Teléfono"
+            required
+          >
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <button type="submit" class="btn-primary" style="flex: 1;">
+            💾 Guardar
+          </button>
+          <button type="button" id="btnCancelarEdicion" class="btn-secondary" style="flex: 1;">
+            ❌ Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Mensaje de estado -->
+    <div id="mensaje" class="mensaje"></div>
+
+    <!-- Botones de acción -->
+    <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 12px;">
+      <button onclick="window.location.href='mis_citas.html'" class="btn-secondary">
+        📋 Ver mis citas
+      </button>
+      
+      <button onclick="window.location.href='seleccionar_fecha.html'" class="btn-secondary">
+        🆕 Nueva reserva
+      </button>
+      
+      <button id="btnCerrarSesion" class="btn-logout">
+        🚪 Cerrar sesión
+      </button>
+    </div>
+  </div>
+
+  <script src="../js/perfil.js"></script>
+</body>
+</html>

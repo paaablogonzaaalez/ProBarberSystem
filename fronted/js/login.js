@@ -2,7 +2,7 @@ const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
   const mensajeDiv = document.getElementById("mensaje");
-  const backendURL = "http://192.168.1.39/ProBarberSystem/backend/index.php";
+  const backendURL = "http://192.168.1.35/ProBarberSystem/backend/index.php";
 
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -25,6 +25,10 @@ if (loginForm) {
 
         mensajeDiv.textContent = "Inicio de sesión exitoso";
         mensajeDiv.style.color = "green";
+
+      if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission();
+      }
 
         setTimeout(() => {
           window.location.href = "../pages/seleccionar_fecha.html";

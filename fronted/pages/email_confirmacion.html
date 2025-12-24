@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProBarberSystem - Email Confirmacion</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+    <div id="pbs-conf-mail-root">
+    <div id="pbs-conf-mail-wrapper">
+
+        <div id="pbs-conf-mail-header">
+            <h1>💈 ProBarberSystem</h1>
+        </div>
+
+        <div id="pbs-conf-mail-content">
+            <h2>¡Hola {{NOMBRE}}! 👋</h2>
+            <p>Tu cita ha sido <strong>confirmada exitosamente</strong>.</p>
+
+            <div id="pbs-conf-mail-appointment">
+                <p><strong>📅 Fecha:</strong> {{FECHA}}</p>
+                <p><strong>🕐 Hora:</strong> {{HORA}}</p>
+                <p><strong>💈 Servicio:</strong> {{SERVICIO}}</p>
+            </div>
+
+            <p><strong>⚠️ Importante:</strong></p>
+            <ul>
+                <li>Por favor, llega 5 minutos antes de tu hora</li>
+                <li>Si necesitas cancelar, hazlo con al menos 2 horas de antelación</li>
+                <li>Puedes gestionar tu cita desde la app</li>
+            </ul>
+
+            <p>¡Te esperamos! 😊</p>
+        </div>
+
+        <div id="pbs-conf-mail-footer">
+            <p>Este es un email automático, por favor no respondas a este mensaje.</p>
+            <p>&copy; 2025 ProBarberSystem - Sistema de Gestión de Citas</p>
+        </div>
+
+    </div>
+</div>
+    
+</body>
+</html>
