@@ -1,4 +1,4 @@
-const backendURL = "http://192.168.1.35/ProBarberSystem/backend/index.php";
+const backendURL = "http://xxxx/ProBarberSystem/backend/index.php";
 
 let datosUsuario = null;
 

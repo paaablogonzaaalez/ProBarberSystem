@@ -12,6 +12,7 @@
   --radius: 18px;
   --transition: 0.25s ease;
   --font-main: 'Inter', system-ui, sans-serif;
+  --font-buttons: 'Poppins', 'Segoe UI', Tahoma, sans-serif;
 }
 
 /* ==============================
@@ -138,20 +139,29 @@ body {
 }
 
 /* ==============================
-   BOTÓN
+   BOTONES CON TIPOGRAFÍA UNIFICADA
 ================================ */
+.btn-primary,
+.btn-secondary,
+.btn-logout,
+.btn-cancelar,
+.btn,
+.btn-login,
+.btn-register {
+  font-family: var(--font-buttons);
+}
+
 .btn-primary {
   margin-top: 10px;
-  padding: 16px;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  padding: 14px;
   background: linear-gradient(135deg, #b44cd9, #8b2fc9);
-  border: none;
   border-radius: 14px;
   color: var(--white);
   font-weight: 700;
   letter-spacing: 3px;
   cursor: pointer;
   transition: var(--transition);
+  border: none;
 }
 
 .btn-primary:hover {
@@ -540,10 +550,6 @@ body.home {
   transform: translateY(0);
 }
 
-#btnNuevaReserva.btn-primary {
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-}
-
 /* ==============================
    PERFIL DE USUARIO
 ================================ */
@@ -588,14 +594,14 @@ body.home {
 
 /* Botón secundario (para mis citas, nueva reserva) */
 .btn-secondary {
+  margin-top: 10px;
   padding: 14px;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
   background: rgba(255, 255, 255, 0.12);
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 14px;
   color: var(--white);
-  font-weight: 600;
-  letter-spacing: 1.5px;
+  font-weight: 700;
+  letter-spacing: 3px;
   cursor: pointer;
   transition: var(--transition);
   font-size: 0.9rem;
@@ -615,7 +621,6 @@ body.home {
 /* Botón cerrar sesión */
 .btn-logout {
   padding: 14px;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
   background: rgba(244, 67, 54, 0.15);
   border: 2px solid rgba(244, 67, 54, 0.4);
   border-radius: 14px;
@@ -653,212 +658,3 @@ body.home {
     font-size: 1rem;
   }
 }
-
-/* ==============================
-   PERFIL DE USUARIO
-================================ */
-
-.perfil-info {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-top: 20px;
-}
-
-.perfil-item {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  padding: 16px 20px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition: all 0.3s ease;
-}
-
-.perfil-item:hover {
-  background: rgba(255, 255, 255, 0.18);
-  transform: translateX(4px);
-}
-
-.perfil-label {
-  font-size: 0.85rem;
-  opacity: 0.7;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.perfil-value {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--white);
-  word-break: break-word;
-}
-
-/* Botón secundario (para mis citas, nueva reserva) */
-.btn-secondary {
-  padding: 14px;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  background: rgba(255, 255, 255, 0.12);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 14px;
-  color: var(--white);
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  cursor: pointer;
-  transition: var(--transition);
-  font-size: 0.9rem;
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-}
-
-.btn-secondary:active {
-  transform: translateY(0);
-}
-
-/* Botón cerrar sesión */
-.btn-logout {
-  padding: 14px;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  background: rgba(244, 67, 54, 0.15);
-  border: 2px solid rgba(244, 67, 54, 0.4);
-  border-radius: 14px;
-  color: #ff6b6b;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  cursor: pointer;
-  transition: var(--transition);
-  font-size: 0.9rem;
-}
-
-.btn-logout:hover {
-  background: rgba(244, 67, 54, 0.25);
-  border-color: #f44336;
-  color: #ff5252;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(244, 67, 54, 0.3);
-}
-
-.btn-logout:active {
-  transform: translateY(0);
-}
-
-/* Responsive para perfil */
-@media (max-width: 480px) {
-  .perfil-info {
-    gap: 14px;
-  }
-  
-  .perfil-item {
-    padding: 14px 16px;
-  }
-  
-  .perfil-value {
-    font-size: 1rem;
-  }
-}
-
-/* EMAIL CONFIRMACION DE CITA */
-#pbs-conf-mail-root {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    color: #333;
-}
-
-#pbs-conf-mail-wrapper {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-#pbs-conf-mail-header {
-    background: linear-gradient(135deg, #2b0040, #3a005f);
-    color: white;
-    padding: 30px;
-    text-align: center;
-    border-radius: 10px 10px 0 0;
-}
-
-#pbs-conf-mail-content {
-    background: #f9f9f9;
-    padding: 30px;
-    border-radius: 0 0 10px 10px;
-}
-
-#pbs-conf-mail-appointment {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin: 20px 0;
-    border-left: 4px solid #c44bd6;
-}
-
-#pbs-conf-mail-appointment p {
-    margin: 10px 0;
-    font-size: 16px;
-}
-
-#pbs-conf-mail-footer {
-    text-align: center;
-    padding: 20px;
-    color: #666;
-    font-size: 12px;
-}
-
-#pbs-conf-mail-root strong {
-    color: #c44bd6;
-}
-
-/* EMAIL CANCELACION DE CITA */
-#pbs-cancel-mail-root {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    color: #333;
-}
-
-#pbs-cancel-mail-wrapper {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-#pbs-cancel-mail-header {
-    background: linear-gradient(135deg, #2b0040, #3a005f);
-    color: white;
-    padding: 30px;
-    text-align: center;
-    border-radius: 10px 10px 0 0;
-}
-
-#pbs-cancel-mail-content {
-    background: #f9f9f9;
-    padding: 30px;
-    border-radius: 0 0 10px 10px;
-}
-
-#pbs-cancel-mail-appointment {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin: 20px 0;
-    border-left: 4px solid #f44336;
-}
-
-#pbs-cancel-mail-appointment p {
-    margin: 10px 0;
-    font-size: 16px;
-}
-
-#pbs-cancel-mail-footer {
-    text-align: center;
-    padding: 20px;
-    color: #666;
-    font-size: 12px;
-}
-

@@ -23,9 +23,140 @@ require_once __DIR__ . '/middleware/AuthMiddleware.php';
 $db = (new Database())->getConnection();
 $usuarioController = new UsuarioController($db);
 
+// ===============================================
+// FUNCIONES DE EMAIL
+// ===============================================
 
+/**
+ * Envía email de confirmación de cita
+ */
+function enviarEmailConfirmacion($db, $citaId) {
+    try {
+        // Obtener datos de la cita
+        $stmt = $db->prepare("
+            SELECT 
+                c.fecha,
+                c.hora,
+                c.tipo_servicio,
+                cl.nombre,
+                cl.email
+            FROM citas c
+            INNER JOIN clientes cl ON c.cliente_id = cl.id
+            WHERE c.id = :cita_id
+        ");
+        $stmt->execute([':cita_id' => $citaId]);
+        $cita = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$cita) {
+            error_log("⚠️ No se encontró la cita ID: $citaId");
+            return false;
+        }
+        
+        // Formatear fecha y hora
+        $fechaObj = new DateTime($cita['fecha']);
+        $fechaFormateada = $fechaObj->format('d/m/Y');
+        $horaFormateada = substr($cita['hora'], 0, 5);
+        
+        // 📧 CARGAR PLANTILLA HTML DESDE ARCHIVO EXTERNO
+        $rutaPlantilla = __DIR__ . '/../pages/email_confirmacion.html';
+        
+        if (!file_exists($rutaPlantilla)) {
+            error_log("❌ No se encontró el archivo: $rutaPlantilla");
+            return false;
+        }
+        
+        $htmlTemplate = file_get_contents($rutaPlantilla);
+        
+        // Reemplazar placeholders con datos reales
+        $mensaje = str_replace(
+            ['{{NOMBRE}}', '{{FECHA}}', '{{HORA}}', '{{SERVICIO}}'],
+            [$cita['nombre'], $fechaFormateada, $horaFormateada, $cita['tipo_servicio']],
+            $htmlTemplate
+        );
+        
+        // Configurar headers
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        $headers .= "From: ProBarberSystem <noreply@probarber.com>" . "\r\n";
+        
+        // Enviar email
+        if (mail($cita['email'], "✅ Cita Confirmada - ProBarberSystem", $mensaje, $headers)) {
+            error_log("✅ Email de confirmación enviado a: {$cita['email']}");
+            return true;
+        }
+        
+        error_log("❌ Error al enviar email a: {$cita['email']}");
+        return false;
+        
+    } catch (Exception $e) {
+        error_log("❌ Error en enviarEmailConfirmacion: " . $e->getMessage());
+        return false;
+    }
+}
 
-// Capturar acción
+/**
+ * Envía email de cancelación de cita
+ */
+function enviarEmailCancelacion($db, $citaId) {
+    try {
+        $stmt = $db->prepare("
+            SELECT 
+                c.fecha,
+                c.hora,
+                c.tipo_servicio,
+                cl.nombre,
+                cl.email
+            FROM citas c
+            INNER JOIN clientes cl ON c.cliente_id = cl.id
+            WHERE c.id = :cita_id
+        ");
+        $stmt->execute([':cita_id' => $citaId]);
+        $cita = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$cita) return false;
+        
+        $fechaObj = new DateTime($cita['fecha']);
+        $fechaFormateada = $fechaObj->format('d/m/Y');
+        $horaFormateada = substr($cita['hora'], 0, 5);
+        
+        // 📧 CARGAR PLANTILLA HTML DESDE ARCHIVO EXTERNO
+        $rutaPlantilla = __DIR__ . '/../pages/email_cancelacion.html';
+        
+        if (!file_exists($rutaPlantilla)) {
+            error_log("❌ No se encontró el archivo: $rutaPlantilla");
+            return false;
+        }
+        
+        $htmlTemplate = file_get_contents($rutaPlantilla);
+        
+        // Reemplazar placeholders
+        $mensaje = str_replace(
+            ['{{NOMBRE}}', '{{FECHA}}', '{{HORA}}', '{{SERVICIO}}'],
+            [$cita['nombre'], $fechaFormateada, $horaFormateada, $cita['tipo_servicio']],
+            $htmlTemplate
+        );
+        
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        $headers .= "From: ProBarberSystem <noreply@probarber.com>" . "\r\n";
+        
+        if (mail($cita['email'], "🔴 Cita Cancelada - ProBarberSystem", $mensaje, $headers)) {
+            error_log("✅ Email de cancelación enviado a: {$cita['email']}");
+            return true;
+        }
+        
+        return false;
+        
+    } catch (Exception $e) {
+        error_log("❌ Error en enviarEmailCancelacion: " . $e->getMessage());
+        return false;
+    }
+}
+
+// ===============================================
+// SWITCH DE ACCIONES
+// ===============================================
+
 $action = $_GET['action'] ?? '';
 
 switch($action) {
@@ -57,36 +188,24 @@ switch($action) {
         break;
 
     // ----------------------
-    // Reservar cita (CON DEBUG)
+    // Reservar cita
     // ----------------------
     case 'reservar':
         try {
-            //  Obtener datos crudos
             $rawData = file_get_contents("php://input");
-            
-            //  Log de datos recibidos
-            error_log("====== RESERVAR CITA - DEBUG ======");
-            error_log("Datos crudos recibidos: " . $rawData);
-            
             $data = json_decode($rawData, true);
             
-            //  Log después de decodificar
-            error_log("Datos decodificados: " . print_r($data, true));
-            error_log("Tipo de data: " . gettype($data));
-            
-            // Verificar si el JSON es válido
             if (json_last_error() !== JSON_ERROR_NONE) {
                 http_response_code(400);
                 ob_clean();
                 echo json_encode([
-                    "success" => false, 
+                    "success" => false,
                     "error" => "JSON inválido: " . json_last_error_msg()
                 ]);
-                error_log("Error JSON: " . json_last_error_msg());
                 break;
             }
 
-            //  Verificar cada campo individualmente
+            // Validar campos requeridos
             $camposFaltantes = [];
             if (!isset($data['fecha'])) $camposFaltantes[] = 'fecha';
             if (!isset($data['hora'])) $camposFaltantes[] = 'hora';
@@ -96,28 +215,38 @@ switch($action) {
             if (!empty($camposFaltantes)) {
                 http_response_code(400);
                 ob_clean();
-                error_log("Campos faltantes: " . implode(', ', $camposFaltantes));
                 echo json_encode([
-                    "success" => false, 
-                    "error" => "Faltan estos campos: " . implode(', ', $camposFaltantes),
-                    "datos_recibidos" => $data,
-                    "campos_faltantes" => $camposFaltantes
+                    "success" => false,
+                    "error" => "Faltan estos campos: " . implode(', ', $camposFaltantes)
                 ]);
                 break;
             }
 
-            // 🔍 Log de validación de tipos
-            error_log("Validación de campos:");
-            error_log("  - fecha: " . $data['fecha'] . " (tipo: " . gettype($data['fecha']) . ")");
-            error_log("  - hora: " . $data['hora'] . " (tipo: " . gettype($data['hora']) . ")");
-            error_log("  - servicio_id: " . $data['servicio_id'] . " (tipo: " . gettype($data['servicio_id']) . ")");
-            error_log("  - cliente_id: " . $data['cliente_id'] . " (tipo: " . gettype($data['cliente_id']) . ")");
+            // Validar que la fecha no sea pasada
+            $fechaCita = new DateTime($data['fecha']);
+            $hoy = new DateTime();
+            $hoy->setTime(0, 0, 0);
+
+            if ($fechaCita < $hoy) {
+                http_response_code(400);
+                ob_clean();
+                echo json_encode(["success" => false, "error" => "No se pueden reservar citas en fechas pasadas"]);
+                break;
+            }
+
+            // Validar formato de hora (HH:MM)
+            if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
+                http_response_code(400);
+                ob_clean();
+                echo json_encode(["success" => false, "error" => "Formato de hora inválido"]);
+                break;
+            }
 
             require_once __DIR__ . '/models/Cita.php';
             $citaModel = new Cita($db);
 
             // Prevención de cita duplicada
-            $stmt = $db->prepare("SELECT COUNT(*) FROM citas WHERE fecha = :fecha AND hora = :hora");
+            $stmt = $db->prepare("SELECT COUNT(*) FROM citas WHERE fecha = :fecha AND hora = :hora AND estado != 'cancelada'");
             $stmt->execute([
                 ':fecha' => $data['fecha'],
                 ':hora' => $data['hora']
@@ -126,142 +255,84 @@ switch($action) {
             if ($stmt->fetchColumn() > 0) {
                 http_response_code(409);
                 ob_clean();
-                error_log("Hora no disponible: " . $data['fecha'] . " " . $data['hora']);
                 echo json_encode(["success" => false, "error" => "Hora no disponible"]);
                 break;
             }
 
-            //  Intentar crear cita
-            error_log("Intentando crear cita...");
-            
+            // Crear cita
             if ($citaModel->crearCita($data)) {
-                $citaId = $db->lastInsertId(); // Obtener ID de la cita recién creada
+                $citaId = $db->lastInsertId();
                 
-                // ENVIAR EMAIL DE CONFIRMACIÓN
+                // Enviar email de confirmación
                 enviarEmailConfirmacion($db, $citaId);
 
                 ob_clean();
-                error_log(" Cita creada correctamente");
                 echo json_encode(["success" => true, "message" => "Cita registrada correctamente"]);
             } else {
                 http_response_code(500);
                 ob_clean();
-                error_log(" Error al crear cita en la BD");
                 echo json_encode(["success" => false, "error" => "No se pudo registrar la cita"]);
             }
 
         } catch (PDOException $e) {
             http_response_code(500);
             ob_clean();
-            error_log(" Error PDO: " . $e->getMessage());
             echo json_encode(["success" => false, "error" => "Error de base de datos: " . $e->getMessage()]);
         } catch (Exception $e) {
             http_response_code(500);
             ob_clean();
-            error_log(" Excepción general: " . $e->getMessage());
             echo json_encode(["success" => false, "error" => "Excepción: " . $e->getMessage()]);
         }
-
-        // En index.php, caso 'reservar'
-        // Validar que la fecha no sea pasada
-        $fechaCita = new DateTime($data['fecha']);
-        $hoy = new DateTime();
-        $hoy->setTime(0, 0, 0);
-
-        if ($fechaCita < $hoy) {
-            http_response_code(400);
-            ob_clean();
-            echo json_encode(["success" => false, "error" => "No se pueden reservar citas en fechas pasadas"]);
-            break;
-        }
-
-        // Validar formato de hora (HH:MM)
-        if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
-            http_response_code(400);
-            ob_clean();
-            echo json_encode(["success" => false, "error" => "Formato de hora inválido"]);
-            break;
-        }
         break;
-
-        $fechaCita = new DateTime($data['fecha']);
-$hoy = new DateTime();
-$hoy->setTime(0, 0, 0);
-
-if ($fechaCita < $hoy) {
-    http_response_code(400);
-    ob_clean();
-    echo json_encode(["success" => false, "error" => "No se pueden reservar citas en fechas pasadas"]);
-    break;
-}
-
-// Validar formato de hora (HH:MM)
-if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
-    http_response_code(400);
-    ob_clean();
-    echo json_encode(["success" => false, "error" => "Formato de hora inválido"]);
-    break;
-}
-    
-// ----------------------
-// Obtener horas ocupadas por fecha
-// ----------------------
+   
+    // ----------------------
+    // Obtener horas ocupadas por fecha
+    // ----------------------
     case 'horas_ocupadas':
+        $fecha = $_GET['fecha'] ?? null;
 
-    $fecha = $_GET['fecha'] ?? null;
+        if (!$fecha) {
+            ob_clean();
+            echo json_encode([
+                "success" => false,
+                "horas_ocupadas" => []
+            ]);
+            break;
+        }
 
-    if (!$fecha) {
-        ob_clean();
-        echo json_encode([
-            "success" => false,
-            "horas_ocupadas" => []
-        ]);
+        try {
+            $stmt = $db->prepare("
+                SELECT hora
+                FROM citas
+                WHERE fecha = :fecha
+                AND estado != 'cancelada'
+            ");
+
+            $stmt->execute([':fecha' => $fecha]);
+            $horas = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            ob_clean();
+            echo json_encode([
+                "success" => true,
+                "horas_ocupadas" => $horas
+            ]);
+
+        } catch (PDOException $e) {
+            http_response_code(500);
+            ob_clean();
+            echo json_encode([
+                "success" => false,
+                "horas_ocupadas" => [],
+                "error" => $e->getMessage()
+            ]);
+        }
         break;
-    }
-
-    try {
-        // 🔧 MODIFICACIÓN: Ahora solo se devuelven citas NO canceladas
-        $stmt = $db->prepare("
-            SELECT hora
-            FROM citas
-            WHERE fecha = :fecha 
-            AND estado != 'cancelada'
-        ");
-
-        $stmt->execute([
-            ':fecha' => $fecha
-        ]);
-
-        $horas = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-        ob_clean();
-        echo json_encode([
-            "success" => true,
-            "horas_ocupadas" => $horas
-        ]);
-
-    } catch (PDOException $e) {
-        http_response_code(500);
-        ob_clean();
-        echo json_encode([
-            "success" => false,
-            "horas_ocupadas" => [],
-            "error" => $e->getMessage()
-        ]);
-    }
-
-    break;
-
-// ========================================
-// AGREGAR ESTOS CASOS AL SWITCH EN index.php
-// ========================================
 
     // ----------------------
     // Obtener citas del usuario autenticado
     // ----------------------
     case 'mis_citas':
         try {
-            // Verificar token JWT
             $usuarioData = AuthMiddleware::verificarToken();
             
             if (!isset($usuarioData->cliente_id)) {
@@ -276,13 +347,12 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
             
             $cliente_id = $usuarioData->cliente_id;
             
-            // Consultar citas del cliente
             $stmt = $db->prepare("
-                SELECT 
-                    c.id, 
-                    c.fecha, 
-                    c.hora, 
-                    c.estado, 
+                SELECT
+                    c.id,
+                    c.fecha,
+                    c.hora,
+                    c.estado,
                     c.tipo_servicio,
                     c.servicio_id
                 FROM citas c
@@ -314,7 +384,6 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
     // ----------------------
     case 'cancelar_cita':
         try {
-            // Verificar token JWT
             $usuarioData = AuthMiddleware::verificarToken();
             
             if (!isset($usuarioData->cliente_id)) {
@@ -328,8 +397,6 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
             }
             
             $cliente_id = $usuarioData->cliente_id;
-            
-            // Obtener datos del POST
             $data = json_decode(file_get_contents('php://input'), true);
             
             if (!isset($data['cita_id'])) {
@@ -344,10 +411,9 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
             
             $cita_id = intval($data['cita_id']);
             
-            // Verificar que la cita pertenece al usuario
             $stmt = $db->prepare("
-                SELECT id, estado 
-                FROM citas 
+                SELECT id, estado
+                FROM citas
                 WHERE id = :cita_id AND cliente_id = :cliente_id
             ");
             
@@ -378,15 +444,14 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
                 break;
             }
             
-            // Actualizar estado a cancelada
             $updateStmt = $db->prepare("
-                UPDATE citas 
-                SET estado = 'cancelada' 
+                UPDATE citas
+                SET estado = 'cancelada'
                 WHERE id = :cita_id
             ");
             
             if ($updateStmt->execute([':cita_id' => $cita_id])) {
-                // ENVIAR EMAIL DE CANCELACIÓN
+                // Enviar email de cancelación
                 enviarEmailCancelacion($db, $cita_id);
 
                 ob_clean();
@@ -418,9 +483,8 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
     // ----------------------
     case 'obtener_perfil':
         try {
-            // Verificar token JWT
             $usuarioData = AuthMiddleware::verificarToken();
-            
+           
             if (!isset($usuarioData->id)) {
                 http_response_code(400);
                 ob_clean();
@@ -430,12 +494,11 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
                 ]);
                 break;
             }
-            
+           
             $usuario_id = $usuarioData->id;
-            
-            // Obtener datos del usuario
+           
             $stmt = $db->prepare("
-                SELECT 
+                SELECT
                     id,
                     nombre,
                     apellidos,
@@ -445,10 +508,10 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
                 FROM usuarios
                 WHERE id = :usuario_id
             ");
-            
+           
             $stmt->execute([':usuario_id' => $usuario_id]);
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+           
             if (!$usuario) {
                 http_response_code(404);
                 ob_clean();
@@ -458,16 +521,17 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
                 ]);
                 break;
             }
-            
-            // Contar total de citas
+           
+            // 🔄 CONTAR SOLO CITAS ACTIVAS (sin canceladas)
             $stmtCitas = $db->prepare("
                 SELECT COUNT(*) as total
                 FROM citas
                 WHERE cliente_id = :cliente_id
+                AND estado != 'cancelada'
             ");
             $stmtCitas->execute([':cliente_id' => $usuarioData->cliente_id]);
             $totalCitas = $stmtCitas->fetch(PDO::FETCH_ASSOC)['total'];
-            
+           
             ob_clean();
             echo json_encode([
                 'success' => true,
@@ -480,7 +544,7 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
                     'total_citas' => $totalCitas
                 ]
             ]);
-            
+           
         } catch (Exception $e) {
             http_response_code(500);
             ob_clean();
@@ -520,7 +584,6 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
                 break;
             }
             
-            // Actualizar usuario
             $stmt = $db->prepare("
                 UPDATE usuarios
                 SET nombre = :nombre,
@@ -537,7 +600,6 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
             ]);
             
             if ($resultado) {
-                // También actualizar en la tabla clientes
                 $stmtCliente = $db->prepare("
                     UPDATE clientes
                     SET nombre = :nombre,
@@ -577,114 +639,6 @@ if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $data['hora'])) {
         }
         break;
 
-/* Envía email de confirmación de cita */
-function enviarEmailConfirmacion($db, $citaId) {
-    try {
-        // Obtener datos de la cita
-        $stmt = $db->prepare("
-            SELECT 
-                c.fecha,
-                c.hora,
-                c.tipo_servicio,
-                cl.nombre,
-                cl.email
-            FROM citas c
-            INNER JOIN clientes cl ON c.cliente_id = cl.id
-            WHERE c.id = :cita_id
-        ");
-        $stmt->execute([':cita_id' => $citaId]);
-        $cita = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$cita) {
-            error_log("⚠️ No se encontró la cita ID: $citaId");
-            return false;
-        }
-
-        // Formatear fecha y hora
-        $fechaFormateada = (new DateTime($cita['fecha']))->format('d/m/Y');
-        $horaFormateada  = substr($cita['hora'], 0, 5);
-
-        // Cargar CSS y HTML desde archivos externos
-        $css  = file_get_contents(__DIR__ . '/email_confirmacion.css');
-        $html = file_get_contents(__DIR__ . '/email_confirmacion.html');
-
-        // Inyectar datos en el HTML
-        $mensaje = str_replace(
-            ['{{CSS}}', '{{NOMBRE}}', '{{FECHA}}', '{{HORA}}', '{{SERVICIO}}'],
-            [$css, $cita['nombre'], $fechaFormateada, $horaFormateada, $cita['tipo_servicio']],
-            $html
-        );
-
-        // Configurar email
-        $headers  = "MIME-Version: 1.0\r\n";
-        $headers .= "Content-type:text/html; charset=UTF-8\r\n";
-        $headers .= "From: ProBarberSystem <noreply@probarber.com>\r\n";
-
-        // Enviar email
-        if (mail($cita['email'], "✅ Cita Confirmada - ProBarberSystem", $mensaje, $headers)) {
-            error_log("✅ Email de confirmación enviado a: {$cita['email']}");
-            return true;
-        }
-
-        error_log("❌ Error al enviar email a: {$cita['email']}");
-        return false;
-
-    } catch (Exception $e) {
-        error_log("❌ Error en enviarEmailConfirmacion: " . $e->getMessage());
-        return false;
-    }
-}
-
-/* Envía email de cancelación de cita */
-function enviarEmailCancelacion($db, $citaId) {
-    try {
-        $stmt = $db->prepare("
-            SELECT 
-                c.fecha,
-                c.hora,
-                c.tipo_servicio,
-                cl.nombre,
-                cl.email
-            FROM citas c
-            INNER JOIN clientes cl ON c.cliente_id = cl.id
-            WHERE c.id = :cita_id
-        ");
-        $stmt->execute([':cita_id' => $citaId]);
-        $cita = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$cita) return false;
-
-        $fechaFormateada = (new DateTime($cita['fecha']))->format('d/m/Y');
-        $horaFormateada  = substr($cita['hora'], 0, 5);
-
-        // Cargar CSS y HTML
-        $css  = file_get_contents(__DIR__ . '/email_cancelacion.css');
-        $html = file_get_contents(__DIR__ . '/email_cancelacion.html');
-
-        // Reemplazar placeholders
-        $mensaje = str_replace(
-            ['{{CSS}}', '{{NOMBRE}}', '{{FECHA}}', '{{HORA}}', '{{SERVICIO}}'],
-            [$css, $cita['nombre'], $fechaFormateada, $horaFormateada, $cita['tipo_servicio']],
-            $html
-        );
-
-        $headers  = "MIME-Version: 1.0\r\n";
-        $headers .= "Content-type:text/html; charset=UTF-8\r\n";
-        $headers .= "From: ProBarberSystem <noreply@probarber.com>\r\n";
-
-        if (mail($cita['email'], "🔴 Cita Cancelada - ProBarberSystem", $mensaje, $headers)) {
-            error_log("✅ Email de cancelación enviado a: {$cita['email']}");
-            return true;
-        }
-
-        return false;
-
-    } catch (Exception $e) {
-        error_log("❌ Error en enviarEmailCancelacion: " . $e->getMessage());
-        return false;
-    }
-}
-
     // ----------------------
     // Ruta por defecto
     // ----------------------
@@ -695,5 +649,4 @@ function enviarEmailCancelacion($db, $citaId) {
         ]);
         break;
 }
-
 ?>

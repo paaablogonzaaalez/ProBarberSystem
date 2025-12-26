@@ -1,7 +1,7 @@
 // =======================================
 // VARIABLES COMUNES
 // =======================================
-const backendURL = "http://192.168.1.35/ProBarberSystem/backend/index.php";
+const backendURL = "http://192.168.1.34/ProBarberSystem/backend/index.php";
 let reserva = {
   fecha: "",
   hora: "",

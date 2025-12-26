@@ -2,7 +2,7 @@ const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
   const mensajeDiv = document.getElementById("mensaje");
-  const backendURL = "http://192.168.1.35/ProBarberSystem/backend/index.php";
+  const backendURL = "http://192.168.1.34/ProBarberSystem/backend/index.php";
 
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -23,25 +23,26 @@ if (loginForm) {
         localStorage.setItem("jwtToken", data.token);
         localStorage.setItem("usuarioNombre", data.usuario.nombre);
 
-        mensajeDiv.textContent = "Inicio de sesión exitoso";
+        mensajeDiv.textContent = "✅ Inicio de sesión exitoso";
         mensajeDiv.style.color = "green";
 
-      if ('Notification' in window && Notification.permission === 'default') {
+        if ('Notification' in window && Notification.permission === 'default') {
           Notification.requestPermission();
-      }
+        }
 
+        // 🔄 CAMBIO: Redirigir a mis_citas.html en lugar de seleccionar_fecha.html
         setTimeout(() => {
-          window.location.href = "../pages/seleccionar_fecha.html";
+          window.location.href = "../pages/mis_citas.html";
         }, 1000);
 
       } else {
         mensajeDiv.textContent =
-          "" + (data.error || "Correo / Contraseña incorrectas.");
+          "❌ " + (data.error || "Correo / Contraseña incorrectas.");
         mensajeDiv.style.color = "red";
       }
 
     } catch (err) {
-      mensajeDiv.textContent = " Error de conexión con el servidor";
+      mensajeDiv.textContent = "⚠️ Error de conexión con el servidor";
       mensajeDiv.style.color = "red";
       console.error(err);
     }
