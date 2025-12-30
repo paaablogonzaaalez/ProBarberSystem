@@ -1,3 +1,9 @@
+
+/* ==============================
+   IMPORTAR FUENTES DE GOOGLE
+================================ */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
 /* ==============================
    VARIABLES
 ================================ */
@@ -11,7 +17,9 @@
 
   --radius: 18px;
   --transition: 0.25s ease;
-  --font-main: 'Inter', system-ui, sans-serif;
+  
+  /* 🔤 FUENTES CORREGIDAS */
+  --font-main: 'Poppins', 'Segoe UI', Tahoma, sans-serif;
   --font-buttons: 'Poppins', 'Segoe UI', Tahoma, sans-serif;
 }
 
@@ -29,14 +37,14 @@
 ================================ */
 body {
   min-height: 100vh;
-  font-family: var(--font-main);
+  font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif;
   background: var(--bg-gradient);
   display: flex;
   justify-content: center;
   align-items: center;
   color: var(--white);
-  height: 100%;
   overflow-y: auto;
+  padding: 20px 0;
 }
 
 /* ==============================
@@ -49,6 +57,7 @@ body {
   background: var(--card-bg);
   border-radius: var(--radius);
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+  margin: 0 auto;
 }
 
 /* ==============================
@@ -59,6 +68,8 @@ body {
   margin-bottom: 30px;
   letter-spacing: 1px;
   font-size: 1.8rem;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
 }
 
 /* ==============================
@@ -75,6 +86,7 @@ body {
 ================================ */
 .input-group {
   position: relative;
+  width: 100%;
 }
 
 .input-group span {
@@ -95,28 +107,35 @@ body {
   z-index: 1;
 }
 
-.input-group input {
+.input-group input,
+.input-group select {
   width: 100%;
+  max-width: 100%;
   padding: 14px 16px 14px 60px;
   border-radius: 14px;
   border: none;
   background: var(--input-bg);
   color: var(--white);
   font-size: 0.95rem;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* FIX: Input tipo date en móviles */
+.input-group input[type="date"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  min-height: 50px;
 }
 
 .input-group input::placeholder {
   color: var(--text-soft);
 }
 
-.input-group input:focus {
+.input-group input:focus,
+.input-group select:focus {
   outline: 2px solid var(--accent);
-}
-
-.input-group input,
-.input-group select {
-  width: 100%;
-  max-width: 100%;
 }
 
 .input-group select option {
@@ -124,31 +143,29 @@ body {
 }
 
 .input-group select {
-  width: 100%;
-  padding: 14px 16px 14px 60px;
-  border-radius: 14px;
-  border: none;
-  background: var(--input-bg);
-  color: var(--white);
-  font-size: 0.95rem;
   appearance: none;
-}
-
-.input-group select:focus {
-  outline: 2px solid var(--accent);
+  cursor: pointer;
 }
 
 /* ==============================
-   BOTONES CON TIPOGRAFÍA UNIFICADA
+   BOTONES - TIPOGRAFÍA POPPINS FORZADA
 ================================ */
+
+button,
+.btn,
 .btn-primary,
 .btn-secondary,
 .btn-logout,
 .btn-cancelar,
-.btn,
 .btn-login,
-.btn-register {
-  font-family: var(--font-buttons);
+.btn-register,
+input[type="submit"],
+input[type="button"],
+a.btn {
+  font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif !important;
+  font-weight: 700 !important;
+  border: none;
+  cursor: pointer;
 }
 
 .btn-primary {
@@ -157,11 +174,10 @@ body {
   background: linear-gradient(135deg, #b44cd9, #8b2fc9);
   border-radius: 14px;
   color: var(--white);
-  font-weight: 700;
   letter-spacing: 3px;
-  cursor: pointer;
   transition: var(--transition);
-  border: none;
+  width: 100%;
+  text-transform: uppercase;
 }
 
 .btn-primary:hover {
@@ -188,7 +204,6 @@ body {
    RESALTADO CAMPOS RESUMEN CITA
 ================================ */
 
-/* Tarjeta para Fecha, Hora y Servicio */
 #output > div {
   background: rgba(255, 255, 255, 0.12);
   border-radius: 14px;
@@ -196,73 +211,65 @@ body {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
 }
 
-/* Resaltar los valores importantes */
 #output strong {
   color: var(--accent);
   font-weight: 700;
 }
 
-/* Texto de los campos un poco más grande */
 #output > div p {
   font-size: 1rem;
 }
 
-/* Frase informativa menos protagonista */
 #output > p {
   font-size: 0.85rem;
   opacity: 0.7;
   text-align: center;
 }
 
-/* ==============================
-   ESPACIADOS RESUMEN CITA
-================================ */
-
-/* Espacio entre "Confirmación de Cita" y el bloque de campos */
 #output h2 {
   margin-bottom: 24px;
+  font-family: 'Poppins', sans-serif;
 }
 
-/* Bloque de campos (Fecha, Hora, Servicio) */
 #output > div {
   margin-bottom: 24px;
 }
 
-/* Espacio ENTRE Fecha, Hora y Servicio */
 #output > div p {
   margin-bottom: 3px;
 }
 
-/* Quitar margen al último campo */
 #output > div p:last-child {
   margin-bottom: 0;
 }
 
-/* Espacio entre la frase y el botón */
 #output > p {
   margin-bottom: 20px;
 }
 
-/* Margen general del resumen */
 #output {
   margin: 15px 0;
 }
 
 /* ==============================
-   HOME
+   HOME - FIX COMPLETO
 ================================ */
 body.home {
   min-height: 100vh;
+  height: 100vh;
   width: 100%;
   margin: 0;
+  padding: 0;
 
-  font-family: var(--font-main);
+  font-family: 'Poppins', sans-serif;
   color: var(--white);
 
   background-image: url('../images/wallpaperhome.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  background-attachment: scroll;
+  
 
   display: flex;
   justify-content: center;
@@ -273,10 +280,10 @@ body.home {
 
 .home-container {
   width: 100%;
-  max-width: 360px;        
-  margin: 0 auto 20px;
-
-  padding: 20px 16px 32px;  
+  max-width: 360px;
+  margin: 0 auto;
+  margin-bottom: 30px;
+  padding: 20px 16px 32px;
   text-align: center;
 
   display: flex;
@@ -290,24 +297,22 @@ body.home {
   flex-direction: column;
   gap: 14px;
   align-items: center;
-  transform: translateY(20px);
 }
 
 .btn {
   width: 100%;
   max-width: 280px;
-
   padding: 12px 20px;
   font-size: 0.85rem;
-  font-weight: 700;
   letter-spacing: 1.5px;
-
   border-radius: 14px;
-
   transition: all var(--transition);
   position: relative;
   overflow: hidden;
   text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .btn-login {
@@ -346,11 +351,9 @@ body.home {
   position: absolute;
   top: 50%;
   left: 50%;
-
   width: 0;
   height: 0;
   border-radius: 50%;
-
   background: rgba(255, 255, 255, 0.3);
   transform: translate(-50%, -50%);
   transition: width 0.6s ease, height 0.6s ease;
@@ -362,37 +365,6 @@ body.home {
 }
 
 /* ==============================
-   RESPONSIVE
-================================ */
-@media (max-width: 480px) {
-  .register-container {
-    width: 90%;
-    max-width: 360px;
-    padding: 20px 16px;
-    margin: 20px auto;          
-    min-height: auto;          
-    display: block;            
-    overflow-y: visible;        
-  }
-
-  .register-container .input-group input {
-    width: 100%;
-  }
-
-  .register-container .btn-primary {
-    width: 100%;
-  }
-
-  .home-container {
-    margin-bottom: 12px;
-  }
-
-  .buttons-container {
-    gap: 16px;
-  }
-}
-
-/* ==============================
    HORAS - GRID
 ================================ */
 .horas-grid {
@@ -400,6 +372,7 @@ body.home {
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-top: 10px;
+  width: 100%;
 }
 
 .hora-btn {
@@ -412,13 +385,13 @@ body.home {
   transition: all 0.2s ease;
   user-select: none;
   position: relative;
+  font-family: 'Poppins', sans-serif;
 }
 
 .hora-btn:hover {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/*  HORA SELECCIONADA */
 .hora-btn.selected {
   background: linear-gradient(135deg, #c44bd6, #8b2fc9);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8) inset,
@@ -430,7 +403,6 @@ body.home {
   content: none;
 }
 
-/*  HORA OCUPADA - SIN BLUR */
 .hora-btn.ocupada {
   opacity: 0.35;
   background: rgba(255, 255, 255, 0.08);
@@ -439,7 +411,7 @@ body.home {
 }
 
 /* ==============================
-   TARJETAS DE CITAS (MIS_CITAS.HTML)
+   TARJETAS DE CITAS
 ================================ */
 #citasContainer {
   width: 100%;
@@ -500,11 +472,12 @@ body.home {
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.5px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .estado-badge.pendiente {
-  background: rgba(76, 175, 80, 0.22);   
-  color: #4caf50;                        
+  background: rgba(76, 175, 80, 0.22);
+  color: #4caf50;
   border: 1px solid rgba(76, 175, 80, 0.45);
 }
 
@@ -533,7 +506,6 @@ body.home {
   color: #ff6b6b;
   font-weight: 600;
   font-size: 0.9rem;
-  cursor: pointer;
   transition: all 0.25s ease;
   letter-spacing: 0.5px;
 }
@@ -592,7 +564,6 @@ body.home {
   word-break: break-word;
 }
 
-/* Botón secundario (para mis citas, nueva reserva) */
 .btn-secondary {
   margin-top: 10px;
   padding: 14px;
@@ -600,11 +571,11 @@ body.home {
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 14px;
   color: var(--white);
-  font-weight: 700;
   letter-spacing: 3px;
-  cursor: pointer;
   transition: var(--transition);
   font-size: 0.9rem;
+  width: 100%;
+  text-transform: uppercase;
 }
 
 .btn-secondary:hover {
@@ -618,7 +589,6 @@ body.home {
   transform: translateY(0);
 }
 
-/* Botón cerrar sesión */
 .btn-logout {
   padding: 14px;
   background: rgba(244, 67, 54, 0.15);
@@ -627,9 +597,10 @@ body.home {
   color: #ff6b6b;
   font-weight: 600;
   letter-spacing: 1.5px;
-  cursor: pointer;
   transition: var(--transition);
   font-size: 0.9rem;
+  width: 100%;
+  text-transform: uppercase;
 }
 
 .btn-logout:hover {
@@ -644,17 +615,524 @@ body.home {
   transform: translateY(0);
 }
 
-/* Responsive para perfil */
+/* ===============================================
+   PANEL DEL BARBERO - ESTILOS
+=============================================== */
+
+.panel-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+/* ===============================================
+   HEADER
+=============================================== */
+.panel-header {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header-top h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.btn-icon {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-icon:hover {
+  background: rgba(244, 67, 54, 0.2);
+  transform: scale(1.1);
+}
+
+/* ===============================================
+   SELECTOR DE FECHA
+=============================================== */
+.fecha-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.fecha-actual {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.input-fecha {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--white);
+  font-size: 1rem;
+  font-family: var(--font-main);
+  cursor: pointer;
+}
+
+.input-fecha::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.btn-hoy {
+  padding: 12px 20px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: var(--font-buttons);
+}
+
+.btn-hoy:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(196, 75, 214, 0.5);
+}
+
+.btn-nav {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-nav:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+/* ===============================================
+   ESTADÍSTICAS
+=============================================== */
+.estadisticas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.stat-numero {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card.total .stat-numero { color: #2196f3; }
+.stat-card.pendientes .stat-numero { color: #ffc107; }
+.stat-card.realizadas .stat-numero { color: #4caf50; }
+.stat-card.canceladas .stat-numero { color: #f44336; }
+
+/* ===============================================
+   LISTA DE CITAS
+=============================================== */
+.lista-citas {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cita-barbero {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-left: 4px solid;
+  transition: all 0.3s ease;
+}
+
+.cita-barbero.pendiente { border-left-color: #ffc107; }
+.cita-barbero.realizada { border-left-color: #4caf50; }
+.cita-barbero.cancelada { border-left-color: #f44336; opacity: 0.6; }
+
+.cita-barbero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.cita-hora {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--accent);
+}
+
+.cita-info-grid {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.cita-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cita-info-row strong {
+  min-width: 90px;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.cita-info-row span {
+  font-size: 1rem;
+}
+
+.telefono-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.telefono-link:hover {
+  text-decoration: underline;
+}
+
+.cita-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-accion {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: var(--font-buttons);
+}
+
+.btn-realizar {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+}
+
+.btn-realizar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+.btn-realizar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.mensaje-vacio {
+  text-align: center;
+  padding: 60px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  margin: 20px 0;
+}
+
+.mensaje-vacio-icono {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.mensaje-vacio h3 {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+}
+
+.mensaje-vacio p {
+  opacity: 0.7;
+  font-size: 0.95rem;
+}
+
+/* ===============================================
+   MODAL RESUMEN SEMANAL
+=============================================== */
+.modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  padding: 30px;
+  border-radius: var(--radius);
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.close {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: var(--white);
+  opacity: 0.7;
+  transition: opacity 0.25s ease;
+}
+
+.close:hover {
+  opacity: 1;
+}
+
+.resumen-dia {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  border-left: 4px solid var(--accent);
+}
+
+.resumen-dia h4 {
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.resumen-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 0.9rem;
+}
+
+.resumen-stats span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ===============================================
+   FOOTER
+=============================================== */
+.panel-footer {
+  margin-top: 30px;
+  text-align: center;
+}
+
+/* ===============================================
+   RESPONSIVE
+=============================================== */
+@media (max-width: 600px) {
+  .panel-container {
+    padding: 10px;
+  }
+
+  .panel-header {
+    padding: 16px;
+  }
+
+  .header-top h1 {
+    font-size: 1.4rem;
+  }
+
+  .fecha-selector {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .fecha-actual {
+    width: 100%;
+  }
+
+  .estadisticas {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cita-hora {
+    font-size: 1.5rem;
+  }
+
+  .cita-acciones {
+    flex-direction: column;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  opacity: 0.7;
+}
+
+/* ==============================
+   RESPONSIVE
+================================ */
 @media (max-width: 480px) {
+  body {
+    padding: 10px 0;
+  }
+
+  .auth-container,
+  .register-container {
+    width: 95%;
+    max-width: 360px;
+    padding: 20px 16px;
+    margin: 10px auto;
+  }
+
+  .auth-container h1 {
+    font-size: 1.5rem;
+  }
+
+  .input-group input,
+  .input-group select {
+    font-size: 0.9rem;
+    padding: 12px 14px 12px 55px;
+  }
+
+  .input-group span {
+    width: 30px;
+    height: 30px;
+    left: 12px;
+    font-size: 0.9rem;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-logout {
+    padding: 12px;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+  }
+
+  .home-container {
+    margin-bottom: 12px;
+    padding: 20px 12px 24px;
+  }
+
+  .buttons-container {
+    gap: 16px;
+  }
+
+  .btn {
+    max-width: 100%;
+    padding: 11px 18px;
+  }
+
+  .horas-grid {
+    gap: 12px;
+  }
+
+  .hora-btn {
+    padding: 10px 0;
+    font-size: 0.9rem;
+  }
+
   .perfil-info {
     gap: 14px;
   }
-  
+
   .perfil-item {
     padding: 14px 16px;
   }
-  
+
   .perfil-value {
     font-size: 1rem;
+  }
+
+  .cita-card {
+    padding: 16px;
+  }
+
+  .cita-info p {
+    font-size: 0.9rem;
+  }
+
+  /* FIX ESPECÍFICO FECHA MÓVIL */
+  .input-group input[type="date"] {
+    padding-left: 55px !important;
+    padding-right: 14px !important;
+    font-size: 0.9rem;
+  }
+
+  .input-group input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.6;
+    cursor: pointer;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .auth-container {
+    max-width: 500px;
+    padding: 45px 40px;
+  }
+}
+
+@media (min-width: 1025px) {
+  body.home {
+    align-items: flex-end;
+  }
+
+  .home-container {
+    margin-bottom: 40px;
+  }
+
+  .auth-container {
+    max-width: 480px;
   }
 }

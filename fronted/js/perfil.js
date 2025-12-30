@@ -1,15 +1,15 @@
-const backendURL = "http://xxxx/ProBarberSystem/backend/index.php";
+
 
 let datosUsuario = null;
 
 // Verificar sesión al cargar
 window.addEventListener('DOMContentLoaded', function() {
-  console.log("🔍 Cargando perfil...");
+  console.log("Cargando perfil...");
   
   const token = localStorage.getItem("jwtToken");
   
   if (!token) {
-    alert("⚠️ Debes iniciar sesión primero");
+    alert("Debes iniciar sesión primero");
     window.location.href = "login.html";
     return;
   }
@@ -24,9 +24,9 @@ async function cargarPerfil(token) {
   const mensajeDiv = document.getElementById("mensaje");
   
   try {
-    console.log("📡 Solicitando datos del perfil...");
+    console.log("Solicitando datos del perfil...");
     
-    const res = await fetch(`${backendURL}?action=obtener_perfil`, {
+    const res = await fetchConAuth(`${backendURL}?action=obtener_perfil`, {
       method: "GET",
       headers: {
         "Authorization": "Bearer " + token,
@@ -34,10 +34,10 @@ async function cargarPerfil(token) {
       }
     });
     
-    console.log("📥 Respuesta recibida:", res.status);
+    console.log("Respuesta recibida:", res.status);
     
     const data = await res.json();
-    console.log("📦 Datos:", data);
+    console.log("Datos:", data);
     
     if (!res.ok) {
       throw new Error(data.error || "Error al cargar perfil");
@@ -52,8 +52,8 @@ async function cargarPerfil(token) {
     }
     
   } catch (error) {
-    console.error("❌ Error:", error);
-    mensajeDiv.textContent = "❌ " + error.message;
+    console.error("Error:", error);
+    mensajeDiv.textContent = "" + error.message;
     mensajeDiv.style.color = "red";
     
     // Si el token expiró, redirigir
@@ -68,7 +68,7 @@ async function cargarPerfil(token) {
 
 // Mostrar datos del perfil
 function mostrarPerfil(usuario) {
-  console.log("✅ Mostrando perfil:", usuario);
+  console.log("Mostrando perfil:", usuario);
   
   // Nombre completo
   const nombreCompleto = usuario.apellidos 
@@ -119,7 +119,7 @@ function configurarEventos() {
 
 // Mostrar formulario de edición
 function mostrarFormularioEdicion() {
-  console.log("✏️ Activando modo edición");
+  console.log("Activando modo edición");
   
   // Rellenar campos con datos actuales
   document.getElementById("editNombre").value = datosUsuario.nombre;
@@ -136,7 +136,7 @@ function mostrarFormularioEdicion() {
 
 // Ocultar formulario de edición
 function ocultarFormularioEdicion() {
-  console.log("👁️ Volviendo a modo visualización");
+  console.log("Volviendo a modo visualización");
   
   document.getElementById("perfilView").style.display = "block";
   document.getElementById("perfilEdit").style.display = "none";
@@ -163,25 +163,25 @@ async function guardarCambios() {
   const telefono = document.getElementById("editTelefono").value.trim();
   
   if (!nombre || !telefono) {
-    mensajeDiv.textContent = "⚠️ Completa los campos obligatorios";
+    mensajeDiv.textContent = "Completa los campos obligatorios";
     mensajeDiv.style.color = "#ff6b6b";
     return;
   }
   
   // Validar teléfono (9 dígitos)
   if (!/^[0-9]{9}$/.test(telefono)) {
-    mensajeDiv.textContent = "⚠️ El teléfono debe tener 9 dígitos";
+    mensajeDiv.textContent = "El teléfono debe tener 9 dígitos";
     mensajeDiv.style.color = "#ff6b6b";
     return;
   }
   
   try {
     btnSubmit.disabled = true;
-    btnSubmit.textContent = "💾 Guardando...";
+    btnSubmit.textContent = "Guardando...";
     
     console.log("📤 Enviando actualización...");
     
-    const res = await fetch(`${backendURL}?action=actualizar_perfil`, {
+    const res = await fetchConAuth(`${backendURL}?action=actualizar_perfil`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -198,7 +198,7 @@ async function guardarCambios() {
     console.log("📥 Respuesta:", data);
     
     if (res.ok && data.success) {
-      mensajeDiv.textContent = "✅ Perfil actualizado correctamente";
+      mensajeDiv.textContent = "Perfil actualizado correctamente";
       mensajeDiv.style.color = "#4caf50";
       
       // Actualizar localStorage
@@ -216,19 +216,19 @@ async function guardarCambios() {
     }
     
   } catch (error) {
-    console.error("❌ Error:", error);
-    mensajeDiv.textContent = "❌ " + error.message;
+    console.error("Error:", error);
+    mensajeDiv.textContent = "" + error.message;
     mensajeDiv.style.color = "#ff6b6b";
   } finally {
     btnSubmit.disabled = false;
-    btnSubmit.textContent = "💾 Guardar";
+    btnSubmit.textContent = "Guardar";
   }
 }
 
 // Cerrar sesión
 function cerrarSesion() {
   if (confirm("¿Estás seguro de que quieres cerrar sesión?")) {
-    console.log("🚪 Cerrando sesión...");
+    console.log("Cerrando sesión...");
     
     // Limpiar localStorage
     localStorage.removeItem("jwtToken");
@@ -240,4 +240,4 @@ function cerrarSesion() {
   }
 }
 
-console.log("✅ perfil.js cargado correctamente");
+console.log("perfil.js cargado correctamente");

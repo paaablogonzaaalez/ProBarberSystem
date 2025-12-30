@@ -1,15 +1,15 @@
-const backendURL = "http://192.168.1.34/ProBarberSystem/backend/index.php";
+
 
 // Esperar a que el DOM esté completamente cargado
 window.addEventListener('DOMContentLoaded', function() {
   console.log("DOM cargado, iniciando...");
  
   const token = localStorage.getItem("jwtToken");
-  console.log("🔑 Token encontrado:", token ? "Sí" : "No");
+  console.log("Token encontrado:", token ? "Sí" : "No");
  
   // Verificar sesión
   if (!token) {
-    alert("⚠️ Debes iniciar sesión primero");
+    alert("Debes iniciar sesión primero");
     window.location.href = "login.html";
     return;
   }
@@ -18,8 +18,8 @@ window.addEventListener('DOMContentLoaded', function() {
   const contenedor = document.getElementById("citasContainer");
   const btnNuevaReserva = document.getElementById("btnNuevaReserva");
  
-  console.log("📦 Contenedor encontrado:", contenedor ? "Sí" : "No");
-  console.log("🔘 Botón encontrado:", btnNuevaReserva ? "Sí" : "No");
+  console.log("Contenedor encontrado:", contenedor ? "Sí" : "No");
+  console.log("Botón encontrado:", btnNuevaReserva ? "Sí" : "No");
  
   if (!contenedor) {
     console.error("No se encontró el elemento citasContainer");
@@ -45,7 +45,7 @@ async function cargarCitas(token, contenedor) {
     console.log("Iniciando carga de citas...");
     console.log("URL:", `${backendURL}?action=mis_citas`);
    
-    const res = await fetch(`${backendURL}?action=mis_citas`, {
+    const res = await fetchConAuth(`${backendURL}?action=mis_citas`, {
       method: "GET",
       headers: {
         "Authorization": "Bearer " + token,
@@ -101,8 +101,8 @@ async function cargarCitas(token, contenedor) {
     // 🔄 FILTRAR SOLO CITAS NO CANCELADAS
     const citasActivas = data.citas.filter(cita => cita.estado !== 'cancelada');
     
-    console.log("📊 Total citas en BD:", data.citas.length);
-    console.log("✅ Citas activas (sin canceladas):", citasActivas.length);
+    console.log("Total citas en BD:", data.citas.length);
+    console.log("Citas activas (sin canceladas):", citasActivas.length);
 
     // Verificar si hay citas activas después del filtrado
     if (citasActivas.length === 0) {
@@ -145,7 +145,7 @@ async function cargarCitas(token, contenedor) {
    
     // Crear tarjetas solo de citas activas
     citasActivas.forEach(function(cita, index) {
-      console.log("📋 Procesando cita activa", index + 1, ":", cita);
+      console.log("Procesando cita activa", index + 1, ":", cita);
      
       const div = document.createElement("div");
       div.className = "cita-card";
@@ -162,7 +162,7 @@ async function cargarCitas(token, contenedor) {
       let estadoHTML = "";
       switch(cita.estado) {
         case "pendiente":
-          estadoHTML = '<span class="estado-badge pendiente">✅ Cita Reservada</span>';
+          estadoHTML = '<span class="estado-badge pendiente">Cita Reservada</span>';
           break;
         case "realizada":
           estadoHTML = '<span class="estado-badge realizada">✓ Realizada</span>';
@@ -182,7 +182,7 @@ async function cargarCitas(token, contenedor) {
         </div>
         ${
           cita.estado === "pendiente"
-            ? `<button onclick="cancelarCita(${cita.id})" class="btn-cancelar">❌ Cancelar cita</button>`
+            ? `<button onclick="cancelarCita(${cita.id})" class="btn-cancelar">Cancelar cita</button>`
             : ""
         }
       `;
@@ -190,10 +190,10 @@ async function cargarCitas(token, contenedor) {
       contenedor.appendChild(div);
     });
 
-    console.log("✅ Todas las citas activas mostradas correctamente");
+    console.log("Todas las citas activas mostradas correctamente");
 
   } catch (error) {
-    console.error("❌ Error completo:", error);
+    console.error("   Error completo:", error);
     console.error("   Mensaje:", error.message);
     console.error("   Stack:", error.stack);
    
@@ -205,7 +205,7 @@ async function cargarCitas(token, contenedor) {
         border-radius: 14px;
         border: 1px solid rgba(244, 67, 54, 0.3);
       ">
-        <p style="font-size: 2.5rem; margin-bottom: 12px;">⚠️</p>
+        <p style="font-size: 2.5rem; margin-bottom: 12px;"></p>
         <p style="font-weight: 600; margin-bottom: 8px;">Error al cargar las citas</p>
         <p style="font-size: 0.85rem; opacity: 0.7;">
           ${error.message}
@@ -217,7 +217,7 @@ async function cargarCitas(token, contenedor) {
 
 // Función global para cancelar una cita
 window.cancelarCita = async function(citaId) {
-  console.log("🗑️ Iniciando cancelación de cita ID:", citaId);
+  console.log("Iniciando cancelación de cita ID:", citaId);
  
   const token = localStorage.getItem("jwtToken");
   const contenedor = document.getElementById("citasContainer");
@@ -229,14 +229,14 @@ window.cancelarCita = async function(citaId) {
   }
 
   if (!confirm("¿Estás seguro de que quieres cancelar esta cita?")) {
-    console.log("❌ Cancelación abortada por el usuario");
+    console.log("Cancelación abortada por el usuario");
     return;
   }
 
   try {
-    console.log("📤 Enviando solicitud de cancelación...");
+    console.log("Enviando solicitud de cancelación...");
    
-    const res = await fetch(`${backendURL}?action=cancelar_cita`, {
+    const res = await fetchConAuth(`${backendURL}?action=cancelar_cita`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -245,25 +245,25 @@ window.cancelarCita = async function(citaId) {
       body: JSON.stringify({ cita_id: citaId })
     });
 
-    console.log("📥 Respuesta recibida, status:", res.status);
+    console.log("Respuesta recibida, status:", res.status);
    
     const data = await res.json();
-    console.log("📦 Datos:", data);
+    console.log("Datos:", data);
 
     if (res.ok && data.success) {
-      alert("✅ Cita cancelada correctamente");
-      console.log("🔄 Recargando lista de citas...");
+      alert("Cita cancelada correctamente");
+      console.log("Recargando lista de citas...");
       // Recargar la lista (las citas canceladas ya no aparecerán)
       await cargarCitas(token, contenedor);
     } else {
       const errorMsg = data.error || data.message || "Error desconocido";
-      console.error("❌ Error del servidor:", errorMsg);
-      alert("❌ No se pudo cancelar la cita: " + errorMsg);
+      console.error("Error del servidor:", errorMsg);
+      alert("No se pudo cancelar la cita: " + errorMsg);
     }
   } catch (error) {
-    console.error("❌ Error de conexión:", error);
-    alert("⚠️ Error de conexión al cancelar la cita");
+    console.error("Error de conexión:", error);
+    alert("Error de conexión al cancelar la cita");
   }
 }
 
-console.log("✅ Script mis_citas.js cargado correctamente");
+console.log("Script mis_citas.js cargado correctamente");

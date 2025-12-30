@@ -1,7 +1,9 @@
+
+
 // =======================================
 // VARIABLES COMUNES
 // =======================================
-const backendURL = "http://192.168.1.34/ProBarberSystem/backend/index.php";
+
 let reserva = {
   fecha: "",
   hora: "",
@@ -10,7 +12,7 @@ let reserva = {
   cliente_id: null
 };
 
-// 0️⃣ Obtener cliente_id del usuario logueado (JWT)
+// 0️. Obtener cliente_id del usuario logueado (JWT)
 function obtenerClienteID() {
   const token = localStorage.getItem("jwtToken");
   if (!token) {
@@ -106,7 +108,7 @@ async function cargarHorasDisponibles() {
     console.log(" URL:", url);
     console.log(" Fecha:", reserva.fecha);
 
-    const res = await fetch(url, {
+    const res = await fetchConAuth(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -265,7 +267,7 @@ function mostrarResumen() {
   }
 
   output.innerHTML = `
-    <h2>📋 Confirmación de Cita</h2>
+    <h2>Confirmación de Cita</h2>
     <div>
       <p><strong> Fecha:</strong> ${formatearFecha(reserva.fecha)}</p>
       <p><strong> Hora:</strong> ${reserva.hora}</p>
@@ -274,7 +276,7 @@ function mostrarResumen() {
     <p>Por favor, revisa que todos los datos sean correctos antes de confirmar.</p>
   `;
 
-  console.log("📋 Datos a enviar:", reserva);
+  console.log("Datos a enviar:", reserva);
 
   btnConfirmar.addEventListener("click", async () => {
     if (!reserva.fecha || !reserva.hora || !reserva.servicio_id || !reserva.cliente_id) {
@@ -300,7 +302,7 @@ function mostrarResumen() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-      const res = await fetch(`${backendURL}?action=reservar`, {
+      const res = await fetchConAuth(`${backendURL}?action=reservar`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

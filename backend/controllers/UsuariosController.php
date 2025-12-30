@@ -179,7 +179,7 @@ class UsuarioController
             "iss" => "ProBarberSystem",
             "aud" => "ProBarberClients",
             "iat" => time(),
-            "exp" => time() + (24 * 60 * 60),
+            "exp" => time() + (60 * 24 * 60 * 60), 
             "data" => [
                 "id" => $usuario["id"],
                 "cliente_id" => $cliente_id,
