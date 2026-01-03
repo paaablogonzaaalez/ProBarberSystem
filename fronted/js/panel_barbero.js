@@ -2,6 +2,15 @@
 // PANEL DEL BARBERO - LÓGICA
 // ===============================================
 
+// ✅ VERIFICAR QUE backendURL EXISTE
+if (typeof backendURL === 'undefined') {
+  console.error('❌ CRÍTICO: backendURL no está definido');
+  alert('Error de configuración. Por favor, recarga la página.');
+  throw new Error('backendURL is not defined');
+}
+
+console.log('✅ backendURL disponible:', backendURL);
+
 let fechaActual = new Date();
 
 // ===============================================
@@ -10,8 +19,8 @@ let fechaActual = new Date();
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🔧 Inicializando panel del barbero...');
   
-  // Verificar que el usuario es barbero
-  verificarRolBarbero();
+  // Verificar que el usuario es admin
+  verificarRolAdmin();
   
   // Configurar fecha actual
   actualizarInputFecha();
@@ -24,13 +33,13 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ===============================================
-// VERIFICAR ROL DE BARBERO
+// VERIFICAR ROL DE ADMIN (SIN ASYNC)
 // ===============================================
-async function verificarRolBarbero() {
+function verificarRolAdmin() {
   const token = localStorage.getItem('jwtToken');
   
   if (!token) {
-    alert('🔒 Debes iniciar sesión como barbero');
+    alert('🔒 Debes iniciar sesión como administrador');
     window.location.href = 'login.html';
     return;
   }
@@ -38,13 +47,16 @@ async function verificarRolBarbero() {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     
-    if (!payload.data.rol || payload.data.rol !== 'barbero') {
-      alert('⛔ Acceso denegado. Solo barberos pueden acceder a este panel.');
+    console.log('🔍 Verificando rol:', payload.data.rol);
+    
+    // ⭐ SOLO PERMITIR admin
+    if (!payload.data.rol || payload.data.rol !== 'admin') {
+      alert('⛔ Acceso denegado. Solo administradores pueden acceder a este panel.');
       window.location.href = 'home.html';
       return;
     }
     
-    console.log('✅ Usuario verificado como barbero');
+    console.log('✅ Usuario verificado como admin');
     
   } catch (error) {
     console.error('❌ Error verificando rol:', error);
@@ -298,7 +310,7 @@ async function marcarComoRealizada(citaId) {
     
     if (data.success) {
       alert('✅ Cita marcada como realizada');
-      cargarCitas(); // Recargar las citas
+      cargarCitas();
     } else {
       throw new Error(data.error || 'Error al actualizar');
     }
@@ -341,7 +353,6 @@ async function mostrarResumenSemanal() {
       return;
     }
     
-    // Generar HTML del resumen
     let html = `
       <p style="margin-bottom: 20px; opacity: 0.8;">
         📅 Del ${formatearFecha(data.rango.inicio)} al ${formatearFecha(data.rango.fin)}
@@ -380,17 +391,16 @@ async function mostrarResumenSemanal() {
 
 function obtenerBadgeEstado(estado) {
   const badges = {
-    'pendiente': 'Pendiente',
-    'confirmada': 'Confirmada',
-    'realizada': 'Realizada',
-    'cancelada': 'Cancelada'
+    'pendiente': '⏳ Pendiente',
+    'confirmada': '✔️ Confirmada',
+    'realizada': '✅ Realizada',
+    'cancelada': '❌ Cancelada'
   };
   return badges[estado] || estado;
 }
 
 function formatearHora(hora) {
-  // hora viene en formato "HH:MM:SS"
-  return hora.substring(0, 5); // Devuelve "HH:MM"
+  return hora.substring(0, 5);
 }
 
 function formatearFecha(fecha) {

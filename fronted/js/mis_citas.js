@@ -1,11 +1,9 @@
-
-
 // Esperar a que el DOM esté completamente cargado
 window.addEventListener('DOMContentLoaded', function() {
-  console.log("DOM cargado, iniciando...");
+  console.log("✅ DOM cargado, iniciando...");
  
   const token = localStorage.getItem("jwtToken");
-  console.log("Token encontrado:", token ? "Sí" : "No");
+  console.log("🔑 Token encontrado:", token ? "Sí" : "No");
  
   // Verificar sesión
   if (!token) {
@@ -18,17 +16,17 @@ window.addEventListener('DOMContentLoaded', function() {
   const contenedor = document.getElementById("citasContainer");
   const btnNuevaReserva = document.getElementById("btnNuevaReserva");
  
-  console.log("Contenedor encontrado:", contenedor ? "Sí" : "No");
-  console.log("Botón encontrado:", btnNuevaReserva ? "Sí" : "No");
+  console.log("📦 Contenedor encontrado:", contenedor ? "Sí" : "No");
+  console.log("🔘 Botón encontrado:", btnNuevaReserva ? "Sí" : "No");
  
   if (!contenedor) {
-    console.error("No se encontró el elemento citasContainer");
+    console.error("❌ No se encontró el elemento citasContainer");
     alert("Error: No se pudo cargar la página correctamente");
     return;
   }
 
   // Cargar citas
-  cargarCitas(token, contenedor);
+  cargarCitas(contenedor);
 
   // Configurar botón de nueva reserva
   if (btnNuevaReserva) {
@@ -40,33 +38,53 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 // Función para cargar citas del usuario
-async function cargarCitas(token, contenedor) {
+async function cargarCitas(contenedor) {
+  console.log("🔄 === INICIANDO CARGA DE CITAS ===");
+  
   try {
-    console.log("Iniciando carga de citas...");
-    console.log("URL:", `${backendURL}?action=mis_citas`);
+    console.log("📍 URL:", `${backendURL}?action=mis_citas`);
    
+    // ⭐ USAR fetchConAuth
+    console.log("📤 Llamando a fetchConAuth...");
     const res = await fetchConAuth(`${backendURL}?action=mis_citas`, {
-      method: "GET",
-      headers: {
-        "Authorization": "Bearer " + token,
-        "Content-Type": "application/json"
-      }
+      method: "GET"
     });
 
-    console.log("Respuesta recibida");
-    console.log("   Status:", res.status);
-    console.log("   OK:", res.ok);
+    console.log("📥 Respuesta de fetchConAuth:", res);
 
-    const data = await res.json();
-    console.log("Datos JSON:", data);
-
-    if (!res.ok) {
-      throw new Error(data.error || "Error al cargar citas");
+    // Si fetchConAuth devuelve null, ya se encargó de redirigir
+    if (!res) {
+      console.error("❌ fetchConAuth devolvió null - usuario redirigido");
+      return;
     }
 
-    // Verificar si hay citas en la respuesta
-    if (!data.citas || data.citas.length === 0) {
-      console.log("No hay citas en la base de datos");
+    console.log("📡 Status:", res.status);
+    console.log("✅ OK:", res.ok);
+
+    // Parsear JSON
+    const data = await res.json();
+    console.log("📦 Datos JSON completos:", JSON.stringify(data, null, 2));
+
+    // Verificar si la respuesta es OK
+    if (!res.ok) {
+      console.error("❌ Response no OK:", data);
+      throw new Error(data.error || `Error HTTP ${res.status}`);
+    }
+
+    // Verificar success en la respuesta
+    if (data.success === false) {
+      console.error("❌ Success = false:", data.error);
+      throw new Error(data.error || "El servidor devolvió success: false");
+    }
+
+    // Verificar si hay citas
+    if (!data.citas) {
+      console.warn("⚠️ No hay propiedad 'citas' en la respuesta");
+      throw new Error("Respuesta inválida del servidor");
+    }
+
+    if (data.citas.length === 0) {
+      console.log("ℹ️ Array de citas vacío");
       contenedor.innerHTML = `
         <div style="
           text-align: center; 
@@ -76,6 +94,7 @@ async function cargarCitas(token, contenedor) {
           margin: 20px 0;
         ">
           <div style="font-size: 4rem; margin-bottom: 16px; opacity: 0.9;">
+         
           </div>
           <h2 style="
             font-size: 1.3rem; 
@@ -92,6 +111,7 @@ async function cargarCitas(token, contenedor) {
             max-width: 280px;
             margin: 0 auto;
           ">
+            
           </p>
         </div>
       `;
@@ -101,12 +121,11 @@ async function cargarCitas(token, contenedor) {
     // 🔄 FILTRAR SOLO CITAS NO CANCELADAS
     const citasActivas = data.citas.filter(cita => cita.estado !== 'cancelada');
     
-    console.log("Total citas en BD:", data.citas.length);
-    console.log("Citas activas (sin canceladas):", citasActivas.length);
+    console.log("📊 Total citas:", data.citas.length);
+    console.log("📊 Citas activas:", citasActivas.length);
 
-    // Verificar si hay citas activas después del filtrado
     if (citasActivas.length === 0) {
-      console.log("No hay citas activas (todas están canceladas)");
+      console.log("ℹ️ No hay citas activas");
       contenedor.innerHTML = `
         <div style="
           text-align: center; 
@@ -116,7 +135,7 @@ async function cargarCitas(token, contenedor) {
           margin: 20px 0;
         ">
           <div style="font-size: 4rem; margin-bottom: 16px; opacity: 0.9;">
-            
+            📅
           </div>
           <h2 style="
             font-size: 1.3rem; 
@@ -124,7 +143,7 @@ async function cargarCitas(token, contenedor) {
             font-weight: 600;
             letter-spacing: 0.5px;
           ">
-            No tienes citas reservadas
+            No tienes citas activas
           </h2>
           <p style="
             opacity: 0.8; 
@@ -133,7 +152,7 @@ async function cargarCitas(token, contenedor) {
             max-width: 280px;
             margin: 0 auto;
           ">
-          
+            Todas tus citas han sido canceladas
           </p>
         </div>
       `;
@@ -143,9 +162,9 @@ async function cargarCitas(token, contenedor) {
     // Limpiar contenedor
     contenedor.innerHTML = "";
    
-    // Crear tarjetas solo de citas activas
+    // Crear tarjetas
     citasActivas.forEach(function(cita, index) {
-      console.log("Procesando cita activa", index + 1, ":", cita);
+      console.log(`✅ Cita ${index + 1}:`, cita);
      
       const div = document.createElement("div");
       div.className = "cita-card";
@@ -158,17 +177,14 @@ async function cargarCitas(token, contenedor) {
         day: 'numeric'
       });
 
-      // Estado con color
+      // Estado
       let estadoHTML = "";
-      switch(cita.estado) {
-        case "pendiente":
-          estadoHTML = '<span class="estado-badge pendiente">Cita Reservada</span>';
-          break;
-        case "realizada":
-          estadoHTML = '<span class="estado-badge realizada">✓ Realizada</span>';
-          break;
-        default:
-          estadoHTML = '<span class="estado-badge pendiente">' + cita.estado + '</span>';
+      if (cita.estado === "pendiente") {
+        estadoHTML = '<span class="estado-badge pendiente">⏳ Cita Reservada</span>';
+      } else if (cita.estado === "realizada") {
+        estadoHTML = '<span class="estado-badge realizada">✓ Realizada</span>';
+      } else {
+        estadoHTML = `<span class="estado-badge">${cita.estado}</span>`;
       }
 
       div.innerHTML = `
@@ -180,22 +196,22 @@ async function cargarCitas(token, contenedor) {
             ${estadoHTML}
           </div>
         </div>
-        ${
-          cita.estado === "pendiente"
-            ? `<button onclick="cancelarCita(${cita.id})" class="btn-cancelar">Cancelar cita</button>`
-            : ""
+        ${cita.estado === "pendiente" 
+          ? `<button onclick="cancelarCita(${cita.id})" class="btn-cancelar">❌ Cancelar cita</button>`
+          : ""
         }
       `;
      
       contenedor.appendChild(div);
     });
 
-    console.log("Todas las citas activas mostradas correctamente");
+    console.log("✅ === CITAS CARGADAS EXITOSAMENTE ===");
 
   } catch (error) {
-    console.error("   Error completo:", error);
-    console.error("   Mensaje:", error.message);
-    console.error("   Stack:", error.stack);
+    console.error("❌ === ERROR EN CARGAR CITAS ===");
+    console.error("Tipo:", error.name);
+    console.error("Mensaje:", error.message);
+    console.error("Stack:", error.stack);
    
     contenedor.innerHTML = `
       <div style="
@@ -205,65 +221,70 @@ async function cargarCitas(token, contenedor) {
         border-radius: 14px;
         border: 1px solid rgba(244, 67, 54, 0.3);
       ">
-        <p style="font-size: 2.5rem; margin-bottom: 12px;"></p>
+        <p style="font-size: 2.5rem; margin-bottom: 12px;">⚠️</p>
         <p style="font-weight: 600; margin-bottom: 8px;">Error al cargar las citas</p>
-        <p style="font-size: 0.85rem; opacity: 0.7;">
+        <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 16px;">
           ${error.message}
         </p>
+        <button onclick="location.reload()" style="
+          padding: 10px 20px;
+          background: var(--accent, #c44bd6);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600;
+        ">
+          🔄 Reintentar
+        </button>
       </div>
     `;
   }
 }
 
-// Función global para cancelar una cita
+// Función para cancelar cita
 window.cancelarCita = async function(citaId) {
-  console.log("Iniciando cancelación de cita ID:", citaId);
+  console.log("🗑️ === INICIANDO CANCELACIÓN ===");
+  console.log("Cita ID:", citaId);
  
-  const token = localStorage.getItem("jwtToken");
   const contenedor = document.getElementById("citasContainer");
- 
-  if (!token) {
-    alert("Sesión expirada. Por favor, inicia sesión nuevamente.");
-    window.location.href = "login.html";
-    return;
-  }
 
   if (!confirm("¿Estás seguro de que quieres cancelar esta cita?")) {
-    console.log("Cancelación abortada por el usuario");
+    console.log("❌ Cancelación abortada");
     return;
   }
 
   try {
-    console.log("Enviando solicitud de cancelación...");
+    console.log("📤 Enviando solicitud...");
    
     const res = await fetchConAuth(`${backendURL}?action=cancelar_cita`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
-      },
       body: JSON.stringify({ cita_id: citaId })
     });
 
-    console.log("Respuesta recibida, status:", res.status);
+    if (!res) {
+      console.error("❌ fetchConAuth devolvió null");
+      return;
+    }
+
+    console.log("📡 Status:", res.status);
    
     const data = await res.json();
-    console.log("Datos:", data);
+    console.log("📦 Respuesta:", data);
 
     if (res.ok && data.success) {
-      alert("Cita cancelada correctamente");
-      console.log("Recargando lista de citas...");
-      // Recargar la lista (las citas canceladas ya no aparecerán)
-      await cargarCitas(token, contenedor);
+      alert("✅ Cita cancelada correctamente");
+      console.log("🔄 Recargando citas...");
+      await cargarCitas(contenedor);
     } else {
       const errorMsg = data.error || data.message || "Error desconocido";
-      console.error("Error del servidor:", errorMsg);
-      alert("No se pudo cancelar la cita: " + errorMsg);
+      console.error("❌ Error:", errorMsg);
+      alert("No se pudo cancelar: " + errorMsg);
     }
   } catch (error) {
-    console.error("Error de conexión:", error);
-    alert("Error de conexión al cancelar la cita");
+    console.error("❌ Error:", error);
+    alert("Error de conexión");
   }
 }
 
-console.log("Script mis_citas.js cargado correctamente");
+console.log("✅ mis_citas.js cargado");

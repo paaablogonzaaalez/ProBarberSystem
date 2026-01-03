@@ -83,18 +83,26 @@ class UsuarioController
             return;
         }
 
-        // Crear JWT con cliente_id
+        // ACTUALIZAR usuarios.cliente_id
+        $stmtUpdate = $this->db->prepare("UPDATE usuarios SET cliente_id = :cliente_id WHERE id = :usuario_id");
+        $stmtUpdate->execute([
+            ':cliente_id' => $cliente_id,
+            ':usuario_id' => $usuario_id
+        ]);
+
+        // Crear JWT con cliente_id Y rol
         $payload = [
             "iss" => "ProBarberSystem",
             "aud" => "ProBarberClients",
             "iat" => time(),
-            "exp" => time() + (24 * 60 * 60),
+            "exp" => time() + (60 * 24 * 60 * 60), 
             "data" => [
                 "id" => $usuario_id,
                 "cliente_id" => $cliente_id,
                 "nombre" => $usuarioData["nombre"],
                 "apellidos" => $usuarioData["apellidos"],
-                "email" => $usuarioData["email"]
+                "email" => $usuarioData["email"],
+                "rol" => "usuario" // 
             ]
         ];
 
@@ -108,13 +116,14 @@ class UsuarioController
                 "cliente_id" => $cliente_id,
                 "nombre" => $usuarioData["nombre"],
                 "apellidos" => $usuarioData["apellidos"],
-                "email" => $usuarioData["email"]
+                "email" => $usuarioData["email"],
+                "rol" => "usuario"
             ]
         ]);
     }
 
     // ======================
-    // Login (MEJORADO)
+    // Login (CORREGIDO)
     // ======================
     public function login()
     {
@@ -133,7 +142,7 @@ class UsuarioController
             return;
         }
 
-        //  BUSCAR O CREAR cliente_id automáticamente
+        // BUSCAR O CREAR cliente_id automáticamente
         $stmt = $this->db->prepare("SELECT id FROM clientes WHERE email = :email LIMIT 1");
         $stmt->execute([':email' => $usuario['email']]);
         $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -141,10 +150,10 @@ class UsuarioController
         $cliente_id = null;
 
         if ($cliente) {
-            //  Cliente ya existe
+            // Cliente ya existe
             $cliente_id = $cliente['id'];
         } else {
-            //  Cliente NO existe, lo creamos automáticamente
+            // Cliente NO existe, lo creamos automáticamente
             $stmtInsert = $this->db->prepare(
                 "INSERT INTO clientes (nombre, telefono, email, notas) 
                  VALUES (:nombre, :telefono, :email, :notas)"
@@ -174,7 +183,16 @@ class UsuarioController
             return;
         }
 
-        // JWT con cliente_id garantizado
+        // ACTUALIZAR usuarios.cliente_id si no lo tiene
+        if (!isset($usuario['cliente_id']) || $usuario['cliente_id'] != $cliente_id) {
+            $stmtUpdate = $this->db->prepare("UPDATE usuarios SET cliente_id = :cliente_id WHERE id = :usuario_id");
+            $stmtUpdate->execute([
+                ':cliente_id' => $cliente_id,
+                ':usuario_id' => $usuario['id']
+            ]);
+        }
+
+        // JWT con cliente_id Y rol garantizados
         $payload = [
             "iss" => "ProBarberSystem",
             "aud" => "ProBarberClients",
@@ -185,7 +203,8 @@ class UsuarioController
                 "cliente_id" => $cliente_id,
                 "nombre" => $usuario["nombre"],
                 "apellidos" => $usuario["apellidos"] ?? '',
-                "email" => $usuario["email"]
+                "email" => $usuario["email"],
+                "rol" => $usuario["rol"] ?? "usuario" 
             ]
         ];
 
@@ -199,7 +218,8 @@ class UsuarioController
                 "cliente_id" => $cliente_id,
                 "nombre" => $usuario["nombre"],
                 "apellidos" => $usuario["apellidos"] ?? '',
-                "email" => $usuario["email"]
+                "email" => $usuario["email"],
+                "rol" => $usuario["rol"] ?? "usuario"
             ]
         ]);
     }

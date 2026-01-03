@@ -20,7 +20,7 @@ class BarberoController
         // Verificar que el usuario es barbero
         $usuarioData = AuthMiddleware::verificarToken();
         
-        if (!isset($usuarioData->rol) || $usuarioData->rol !== 'barbero') {
+        if (!isset($usuarioData->rol) || $usuarioData->rol !== 'admin') {
             http_response_code(403);
             echo json_encode([
                 "success" => false,
@@ -99,7 +99,7 @@ class BarberoController
     {
         $usuarioData = AuthMiddleware::verificarToken();
         
-        if (!isset($usuarioData->rol) || $usuarioData->rol !== 'barbero') {
+        if (!isset($usuarioData->rol) || $usuarioData->rol !== 'admin') {
             http_response_code(403);
             echo json_encode([
                 "success" => false,
@@ -155,12 +155,12 @@ class BarberoController
     {
         $usuarioData = AuthMiddleware::verificarToken();
         
-        if (!isset($usuarioData->rol) || $usuarioData->rol !== 'barbero') {
+        if (!isset($usuarioData->rol) || $usuarioData->rol !== 'admin') {
             http_response_code(403);
             echo json_encode(["success" => false, "error" => "Acceso denegado"]);
             return;
         }
-
+        
         try {
             // Obtener lunes y domingo de la semana actual
             $hoy = new DateTime();

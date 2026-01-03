@@ -20,8 +20,10 @@ require_once __DIR__ . '/controllers/UsuariosController.php';
 require_once __DIR__ . '/controllers/BarberoController.php';
 require_once __DIR__ . '/middleware/AuthMiddleware.php';
 
-// Conexión a la base de datos
+// ✅ PRIMERO: Conexión a la base de datos
 $db = (new Database())->getConnection();
+
+// ✅ DESPUÉS: Crear controlador
 $usuarioController = new UsuarioController($db);
 
 // ===============================================
@@ -49,7 +51,7 @@ function enviarEmailConfirmacion($db, $citaId) {
         $cita = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$cita) {
-            error_log(" No se encontró la cita ID: $citaId");
+            error_log("❌ No se encontró la cita ID: $citaId");
             return false;
         }
         
@@ -62,7 +64,7 @@ function enviarEmailConfirmacion($db, $citaId) {
         $rutaPlantilla = __DIR__ . '/../pages/email_confirmacion.html';
         
         if (!file_exists($rutaPlantilla)) {
-            error_log(" No se encontró el archivo: $rutaPlantilla");
+            error_log("❌ No se encontró el archivo: $rutaPlantilla");
             return false;
         }
         
@@ -81,16 +83,16 @@ function enviarEmailConfirmacion($db, $citaId) {
         $headers .= "From: ProBarberSystem <noreply@probarber.com>" . "\r\n";
         
         // Enviar email
-        if (mail($cita['email'], " Cita Confirmada - ProBarberSystem", $mensaje, $headers)) {
-            error_log(" Email de confirmación enviado a: {$cita['email']}");
+        if (mail($cita['email'], "✅ Cita Confirmada - ProBarberSystem", $mensaje, $headers)) {
+            error_log("✅ Email de confirmación enviado a: {$cita['email']}");
             return true;
         }
         
-        error_log(" Error al enviar email a: {$cita['email']}");
+        error_log("❌ Error al enviar email a: {$cita['email']}");
         return false;
         
     } catch (Exception $e) {
-        error_log(" Error en enviarEmailConfirmacion: " . $e->getMessage());
+        error_log("❌ Error en enviarEmailConfirmacion: " . $e->getMessage());
         return false;
     }
 }
@@ -120,11 +122,11 @@ function enviarEmailCancelacion($db, $citaId) {
         $fechaFormateada = $fechaObj->format('d/m/Y');
         $horaFormateada = substr($cita['hora'], 0, 5);
         
-        //  CARGAR PLANTILLA HTML DESDE ARCHIVO EXTERNO
+        // 📧 CARGAR PLANTILLA HTML DESDE ARCHIVO EXTERNO
         $rutaPlantilla = __DIR__ . '/../pages/email_cancelacion.html';
         
         if (!file_exists($rutaPlantilla)) {
-            error_log(" No se encontró el archivo: $rutaPlantilla");
+            error_log("❌ No se encontró el archivo: $rutaPlantilla");
             return false;
         }
         
@@ -141,15 +143,15 @@ function enviarEmailCancelacion($db, $citaId) {
         $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
         $headers .= "From: ProBarberSystem <noreply@probarber.com>" . "\r\n";
         
-        if (mail($cita['email'], " Cita Cancelada - ProBarberSystem", $mensaje, $headers)) {
-            error_log(" Email de cancelación enviado a: {$cita['email']}");
+        if (mail($cita['email'], "❌ Cita Cancelada - ProBarberSystem", $mensaje, $headers)) {
+            error_log("✅ Email de cancelación enviado a: {$cita['email']}");
             return true;
         }
         
         return false;
         
     } catch (Exception $e) {
-        error_log(" Error en enviarEmailCancelacion: " . $e->getMessage());
+        error_log("❌ Error en enviarEmailCancelacion: " . $e->getMessage());
         return false;
     }
 }
@@ -347,7 +349,7 @@ switch($action) {
             }
             
             $cliente_id = $usuarioData->cliente_id;
-            
+
             $stmt = $db->prepare("
                 SELECT
                     c.id,
@@ -523,7 +525,7 @@ switch($action) {
                 break;
             }
            
-            //  CONTAR SOLO CITAS ACTIVAS (sin canceladas)
+            // 📊 CONTAR SOLO CITAS ACTIVAS (sin canceladas)
             $stmtCitas = $db->prepare("
                 SELECT COUNT(*) as total
                 FROM citas
